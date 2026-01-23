@@ -1,132 +1,274 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>옷마카세 | 3D 가상 피팅</title>
-  <link rel="stylesheet" href="./styles.css" />
-</head>
-<body>
-  <header class="topbar">
-    <a class="brand" href="#top">
-      <img src="./images/logo.png" alt="옷마카세 로고" class="logo" />
-      <span class="brand-name">옷마카세</span>
-    </a>
+:root{
+  --bg:#f7f6f2;
+  --bg2:#ffffff;
+  --card:#ffffff;
+  --text:#0f172a;      /* slate-900 */
+  --muted:#475569;     /* slate-600 */
+  --line:rgba(15,23,42,.10);
 
-    <nav class="nav">
-      <a href="#product">제품</a>
-      <a href="#how">작동 방식</a>
-      <a href="#cases">고객 사례</a>
-      <a href="#company">회사 소개</a>
-      <a href="#faq">FAQ</a>
-      <a class="btn" href="#contact">문의</a>
-    </nav>
-  </header>
+  --accent:#ffb020;
+  --accent2:#ff8a00;
 
-  <main id="top">
-    <section class="hero">
-      <div class="hero-text">
-        <p class="eyebrow">3D Virtual Fitting</p>
-        <h1>온라인 쇼핑의 사이즈 불안을<br/>“피팅 경험”으로 바꿉니다</h1>
-        <p class="lead">
-          옷마카세는 웹 기반 3D 가상 피팅으로 고객이 구매 전에 핏을 확인하게 합니다.
-          플랫폼/브랜드는 반품 비용을 줄이고, 고객은 구매 확신을 얻습니다.
-        </p>
-        <div class="cta">
-          <a class="cta-primary" href="#contact">데모 요청하기</a>
-          <a class="cta-secondary" href="#how">어떻게 작동하나요?</a>
-        </div>
-        <ul class="bullets">
-          <li>설치 없음 · 브라우저에서 즉시 실행</li>
-          <li>SDK/임베드 방식으로 유연한 연동</li>
-          <li>핏 지표/추천 확장 가능</li>
-        </ul>
-      </div>
+  --shadow:0 18px 50px rgba(15,23,42,.10);
+  --shadow2:0 10px 24px rgba(15,23,42,.08);
 
-      <div class="hero-media">
-        <img src="./images/hero.jpg" alt="옷마카세 히어로 이미지" />
-      </div>
-    </section>
+  --radius:18px;
+  --radius2:14px;
+  --max:1120px;
+}
 
-    <section id="product" class="section">
-      <h2>제품</h2>
-      <div class="cards">
-        <article class="card">
-          <img src="./images/product-avatar.png" alt="아바타" />
-          <h3>3D 아바타 기반 피팅</h3>
-          <p>사용자 체형 정보 기반으로 의류 착용 모습을 시각화합니다.</p>
-        </article>
-        <article class="card">
-          <img src="./images/product-insights.png" alt="인사이트" />
-          <h3>사이즈 추천/핏 인사이트</h3>
-          <p>사이즈 미스 가능성을 줄이는 핏 지표를 제공합니다.</p>
-        </article>
-        <article class="card">
-          <img src="./images/how-it-works.png" alt="작동 방식" />
-          <h3>웹 임베드/SDK</h3>
-          <p>쇼핑몰 페이지에 버튼 하나로 연결되는 형태를 목표로 합니다.</p>
-        </article>
-      </div>
-    </section>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(900px 520px at 15% -10%, rgba(255,176,32,.22), transparent 60%),
+    radial-gradient(820px 520px at 90% 0%, rgba(255,138,0,.12), transparent 55%),
+    linear-gradient(180deg, var(--bg), var(--bg2));
+}
 
-    <section id="how" class="section alt">
-      <h2>작동 방식</h2>
-      <ol class="steps">
-        <li><b>체형 입력</b> (간단 측정/프로필)</li>
-        <li><b>의류 데이터</b> (치수/패턴/3D)</li>
-        <li><b>피팅 렌더링</b> (웹에서 즉시)</li>
-        <li><b>추천/비교</b> (사이즈/핏)</li>
-      </ol>
-    </section>
+a{color:inherit;text-decoration:none}
+.section{
+  max-width:var(--max);
+  margin:0 auto;
+  padding:72px 18px;
+}
+.section.alt{
+  padding:64px 18px;
+}
+.section-title{
+  display:flex; align-items:end; justify-content:space-between;
+  gap:14px;
+  margin:0 0 18px;
+}
+.section-title h2{margin:0; font-size:28px; letter-spacing:-.3px}
+.section-title p{margin:0; color:var(--muted); line-height:1.6}
 
-    <section id="cases" class="section">
-      <h2>고객 사례 (예시)</h2>
-      <div class="cases">
-        <img src="./images/case-a.jpg" alt="사례 A" />
-        <img src="./images/case-b.jpg" alt="사례 B" />
-      </div>
-      <p class="note">발표용 데모에서는 “반품률 감소/전환율 상승” 메시지를 핵심으로 전달합니다.</p>
-    </section>
+/* Topbar */
+.topbar{
+  position:sticky; top:0; z-index:50;
+  background:rgba(247,246,242,.82);
+  backdrop-filter: blur(10px);
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 18px;
+}
+.brand{display:flex; align-items:center; gap:10px}
+.logo{width:34px;height:34px; object-fit:contain}
+.brand-name{font-weight:900; letter-spacing:-.3px}
+.nav{display:flex; gap:16px; align-items:center; flex-wrap:wrap}
+.nav a{color:var(--muted); font-weight:700}
+.nav a:hover{color:var(--text)}
+.nav .btn{
+  padding:10px 14px;
+  border-radius:999px;
+  background:linear-gradient(180deg, var(--accent), var(--accent2));
+  color:#2b1600;
+  font-weight:900;
+  box-shadow: 0 12px 30px rgba(255,176,32,.20);
+}
 
-    <section id="company" class="section alt">
-      <h2>회사 소개</h2>
-      <p>
-        옷마카세는 온라인 의류 구매에서 발생하는 “사이즈 불안”을 해결하기 위해
-        3D 가상 피팅 경험을 웹에서 제공하는 것을 목표로 합니다.
-      </p>
-      <div class="partners">
-        <span>MUSINSA</span><span>ZIGZAG</span><span>29CM</span><span>WCONCEPT</span>
-      </div>
-    </section>
+/* Hero */
+.hero{
+  max-width:var(--max);
+  margin:18px auto 0;
+  display:grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap:20px;
+  padding:18px;
+}
+@media (max-width: 920px){
+  .hero{grid-template-columns:1fr}
+  .nav{gap:10px}
+}
 
-    <section id="faq" class="section">
-      <h2>FAQ</h2>
-      <details>
-        <summary>설치가 필요한가요?</summary>
-        <p>아니요. 웹에서 바로 실행되는 형태를 목표로 합니다.</p>
-      </details>
-      <details>
-        <summary>어떤 방식으로 연동하나요?</summary>
-        <p>SDK/임베드 방식(상품 상세 페이지 버튼)으로 연동을 가정합니다.</p>
-      </details>
-      <details>
-        <summary>데이터는 무엇이 필요한가요?</summary>
-        <p>최소한 의류 사이즈 스펙(치수)과 이미지/3D 데이터가 필요합니다.</p>
-      </details>
-    </section>
+.hero-text{
+  padding:26px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.70);
+  box-shadow:var(--shadow);
+}
+.eyebrow{
+  margin:0 0 10px;
+  color:#7c4a00;
+  font-weight:900;
+  letter-spacing:.2px;
+}
+h1{
+  margin:0 0 14px;
+  font-size:44px;
+  line-height:1.07;
+  letter-spacing:-.8px;
+}
+.lead{
+  margin:0 0 18px;
+  color:var(--muted);
+  font-size:16px;
+  line-height:1.75;
+}
 
-    <section id="contact" class="section alt">
-      <h2>문의 / 데모 요청</h2>
-      <p>발표용 데모 링크/자료 요청은 아래 이메일로 연락 주세요.</p>
-      <div class="contact-box">
-        <div><b>Email</b> demo@ootmakase.com</div>
-        <div><b>제안</b> “상품 상세 페이지에서 3초 내 피팅 실행”</div>
-      </div>
-    </section>
-  </main>
+.cta{display:flex; gap:12px; flex-wrap:wrap; margin:10px 0 14px}
+.cta a{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:12px 16px;
+  border-radius:12px;
+  font-weight:900;
+  border:1px solid transparent;
+}
+.cta-primary{
+  background:linear-gradient(180deg, var(--accent), var(--accent2));
+  color:#2b1600;
+  box-shadow: 0 10px 26px rgba(255,176,32,.22);
+}
+.cta-secondary{
+  border-color:var(--line);
+  background:rgba(255,255,255,.80);
+  color:var(--text);
+}
 
-  <footer class="footer">
-    <small>© 옷마카세 (OOTMAKASE). All rights reserved.</small>
-  </footer>
-</body>
-</html>
+.bullets{
+  margin:14px 0 0;
+  padding-left:18px;
+  color:var(--muted);
+  line-height:1.9;
+}
+.bullets li{margin:4px 0}
+
+.hero-media{
+  border-radius:var(--radius);
+  overflow:hidden;
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  background:#fff;
+}
+.hero-media img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+/* Cards */
+.cards{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:16px;
+}
+@media (max-width: 920px){
+  .cards{grid-template-columns:1fr}
+}
+
+.card{
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.85);
+  padding:16px;
+  box-shadow:var(--shadow2);
+}
+.card img{
+  width:100%;
+  height:170px;
+  object-fit:cover;
+  border-radius:var(--radius2);
+  border:1px solid var(--line);
+  background:#fff;
+}
+.card h3{margin:12px 0 6px; letter-spacing:-.3px}
+.card p{margin:0; color:var(--muted); line-height:1.65}
+
+/* Steps */
+.steps-wrap{
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.85);
+  box-shadow:var(--shadow2);
+  padding:18px;
+}
+.steps{
+  margin:0;
+  padding-left:18px;
+  color:var(--muted);
+  line-height:2.05;
+}
+.steps b{color:var(--text)}
+
+/* Cases */
+.cases{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:14px;
+}
+@media (max-width: 920px){
+  .cases{grid-template-columns:1fr}
+}
+.cases img{
+  width:100%;
+  height:270px;
+  object-fit:cover;
+  border-radius:var(--radius);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow2);
+  background:#fff;
+}
+.note{color:var(--muted); line-height:1.7}
+
+/* Partners */
+.partners{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:14px;
+}
+.partners span{
+  border:1px solid var(--line);
+  padding:8px 12px;
+  border-radius:999px;
+  color:#2b1600;
+  background:linear-gradient(180deg, rgba(255,176,32,.22), rgba(255,138,0,.10));
+  font-weight:900;
+}
+
+/* FAQ */
+details{
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:14px 16px;
+  background:rgba(255,255,255,.85);
+  box-shadow:var(--shadow2);
+  margin:10px 0;
+}
+summary{cursor:pointer; font-weight:900; letter-spacing:-.2px}
+details p{color:var(--muted); line-height:1.75}
+
+/* Contact */
+.contact-box{
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:16px;
+  background:rgba(255,255,255,.85);
+  box-shadow:var(--shadow2);
+  color:var(--muted);
+  line-height:1.9;
+}
+
+/* Footer */
+.footer{
+  border-top:1px solid var(--line);
+  padding:22px 18px;
+  text-align:center;
+  color:var(--muted);
+  background:rgba(255,255,255,.55);
+}
+
+/* Small helpers if you want to wrap some areas */
+.cardlike{
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.85);
+  box-shadow:var(--shadow2);
+  padding:18px;
+}
