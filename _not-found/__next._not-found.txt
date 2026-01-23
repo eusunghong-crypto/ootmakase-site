@@ -1,4 +1,4 @@
 1:"$Sreact.fragment"
 2:I[46178,["/ootmakase-site/_next/static/chunks/3b0e2422bf9fe4f5.js"],"default"]
 3:I[62108,["/ootmakase-site/_next/static/chunks/3b0e2422bf9fe4f5.js"],"default"]
-0:{"buildId":"cV-4BZdYqUYnOK42eteCf","rsc":["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"XW6hW1qZ1X-RRzbC95NdT","rsc":["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","template":["$","$L3",null,{}]}]]}],"loading":null,"isPartial":false}
