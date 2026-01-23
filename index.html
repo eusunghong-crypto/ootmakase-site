@@ -1,274 +1,561 @@
-:root{
-  --bg:#f7f6f2;
-  --bg2:#ffffff;
-  --card:#ffffff;
-  --text:#0f172a;      /* slate-900 */
-  --muted:#475569;     /* slate-600 */
-  --line:rgba(15,23,42,.10);
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>옷마카세 | 웹 기반 3D 가상 피팅</title>
+  <meta name="description" content="옷마카세는 웹 기반 3D 가상 피팅으로 사이즈 불안을 줄이고 반품을 감소시키며 전환율을 높입니다." />
+  <meta property="og:title" content="옷마카세 | 웹 기반 3D 가상 피팅" />
+  <meta property="og:description" content="설치 없이 웹에서 3D 가상 피팅. 반품 감소, 전환율 상승, 고객 경험 개선." />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
 
-  --accent:#ffb020;
-  --accent2:#ff8a00;
+<body>
+  <!-- Topbar -->
+  <header class="topbar" id="top">
+    <div class="topbar-inner">
+      <a class="brand" href="#top">
+        <img class="logo" src="./images/logo.png" alt="옷마카세 로고" />
+        <div class="brand-text">
+          <div class="brand-name">옷마카세</div>
+          <div class="brand-sub">Web 3D Virtual Fitting</div>
+        </div>
+      </a>
 
-  --shadow:0 18px 50px rgba(15,23,42,.10);
-  --shadow2:0 10px 24px rgba(15,23,42,.08);
+      <nav class="nav">
+        <a href="#product">제품</a>
+        <a href="#features">기능</a>
+        <a href="#how">도입 프로세스</a>
+        <a href="#cases">사례</a>
+        <a href="#pricing">가격</a>
+        <a href="#faq">FAQ</a>
+      </nav>
 
-  --radius:18px;
-  --radius2:14px;
-  --max:1120px;
-}
+      <div class="nav-cta">
+        <a class="btn ghost" href="#pricing">플랜 보기</a>
+        <a class="btn solid" href="#contact">데모 요청</a>
+      </div>
 
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-  color:var(--text);
-  background:
-    radial-gradient(900px 520px at 15% -10%, rgba(255,176,32,.22), transparent 60%),
-    radial-gradient(820px 520px at 90% 0%, rgba(255,138,0,.12), transparent 55%),
-    linear-gradient(180deg, var(--bg), var(--bg2));
-}
+      <button class="hamburger" aria-label="메뉴" onclick="document.body.classList.toggle('menu-open')">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
 
-a{color:inherit;text-decoration:none}
-.section{
-  max-width:var(--max);
-  margin:0 auto;
-  padding:72px 18px;
-}
-.section.alt{
-  padding:64px 18px;
-}
-.section-title{
-  display:flex; align-items:end; justify-content:space-between;
-  gap:14px;
-  margin:0 0 18px;
-}
-.section-title h2{margin:0; font-size:28px; letter-spacing:-.3px}
-.section-title p{margin:0; color:var(--muted); line-height:1.6}
+    <div class="mobile-menu">
+      <a href="#product" onclick="document.body.classList.remove('menu-open')">제품</a>
+      <a href="#features" onclick="document.body.classList.remove('menu-open')">기능</a>
+      <a href="#how" onclick="document.body.classList.remove('menu-open')">도입 프로세스</a>
+      <a href="#cases" onclick="document.body.classList.remove('menu-open')">사례</a>
+      <a href="#pricing" onclick="document.body.classList.remove('menu-open')">가격</a>
+      <a href="#faq" onclick="document.body.classList.remove('menu-open')">FAQ</a>
+      <a class="btn solid" href="#contact" onclick="document.body.classList.remove('menu-open')">데모 요청</a>
+    </div>
+  </header>
 
-/* Topbar */
-.topbar{
-  position:sticky; top:0; z-index:50;
-  background:rgba(247,246,242,.82);
-  backdrop-filter: blur(10px);
-  border-bottom:1px solid var(--line);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:14px 18px;
-}
-.brand{display:flex; align-items:center; gap:10px}
-.logo{width:34px;height:34px; object-fit:contain}
-.brand-name{font-weight:900; letter-spacing:-.3px}
-.nav{display:flex; gap:16px; align-items:center; flex-wrap:wrap}
-.nav a{color:var(--muted); font-weight:700}
-.nav a:hover{color:var(--text)}
-.nav .btn{
-  padding:10px 14px;
-  border-radius:999px;
-  background:linear-gradient(180deg, var(--accent), var(--accent2));
-  color:#2b1600;
-  font-weight:900;
-  box-shadow: 0 12px 30px rgba(255,176,32,.20);
-}
+  <!-- Hero -->
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="pill">
+            <span class="dot"></span>
+            설치 없이 웹에서 실행되는 3D 가상 피팅
+          </div>
 
-/* Hero */
-.hero{
-  max-width:var(--max);
-  margin:18px auto 0;
-  display:grid;
-  grid-template-columns: 1.2fr .8fr;
-  gap:20px;
-  padding:18px;
-}
-@media (max-width: 920px){
-  .hero{grid-template-columns:1fr}
-  .nav{gap:10px}
-}
+          <h1>
+            온라인 쇼핑의 사이즈 불안을<br/>
+            <span class="grad">“피팅 경험”</span>으로 바꿉니다
+          </h1>
 
-.hero-text{
-  padding:26px;
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  background:rgba(255,255,255,.70);
-  box-shadow:var(--shadow);
-}
-.eyebrow{
-  margin:0 0 10px;
-  color:#7c4a00;
-  font-weight:900;
-  letter-spacing:.2px;
-}
-h1{
-  margin:0 0 14px;
-  font-size:44px;
-  line-height:1.07;
-  letter-spacing:-.8px;
-}
-.lead{
-  margin:0 0 18px;
-  color:var(--muted);
-  font-size:16px;
-  line-height:1.75;
-}
+          <p class="lead">
+            옷마카세는 웹 기반 3D 가상 피팅으로 고객이 구매 전에 핏을 확인하도록 돕습니다.
+            플랫폼/브랜드는 반품 비용을 줄이고, 고객은 구매 확신을 얻습니다.
+          </p>
 
-.cta{display:flex; gap:12px; flex-wrap:wrap; margin:10px 0 14px}
-.cta a{
-  display:inline-flex; align-items:center; justify-content:center;
-  padding:12px 16px;
-  border-radius:12px;
-  font-weight:900;
-  border:1px solid transparent;
-}
-.cta-primary{
-  background:linear-gradient(180deg, var(--accent), var(--accent2));
-  color:#2b1600;
-  box-shadow: 0 10px 26px rgba(255,176,32,.22);
-}
-.cta-secondary{
-  border-color:var(--line);
-  background:rgba(255,255,255,.80);
-  color:var(--text);
-}
+          <div class="hero-cta">
+            <a class="btn solid big" href="#contact">데모 요청하기</a>
+            <a class="btn ghost big" href="#product">제품 둘러보기</a>
+          </div>
 
-.bullets{
-  margin:14px 0 0;
-  padding-left:18px;
-  color:var(--muted);
-  line-height:1.9;
-}
-.bullets li{margin:4px 0}
+          <div class="kpi-row">
+            <div class="kpi">
+              <div class="kpi-num">↓</div>
+              <div class="kpi-text">
+                <b>반품/교환 비용</b><br/>
+                사이즈 미스 감소
+              </div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-num">↑</div>
+              <div class="kpi-text">
+                <b>전환율</b><br/>
+                구매 확신 강화
+              </div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-num">⚡</div>
+              <div class="kpi-text">
+                <b>설치 없음</b><br/>
+                브라우저 즉시 실행
+              </div>
+            </div>
+          </div>
 
-.hero-media{
-  border-radius:var(--radius);
-  overflow:hidden;
-  border:1px solid var(--line);
-  box-shadow:var(--shadow);
-  background:#fff;
-}
-.hero-media img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-}
+          <div class="trust">
+            <div class="trust-title">Partners (예시)</div>
+            <div class="trust-logos">
+              <span>MUSINSA</span>
+              <span>ZIGZAG</span>
+              <span>29CM</span>
+              <span>WCONCEPT</span>
+              <span>CONCEPTABLY</span>
+            </div>
+          </div>
+        </div>
 
-/* Cards */
-.cards{
-  display:grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap:16px;
-}
-@media (max-width: 920px){
-  .cards{grid-template-columns:1fr}
-}
+        <div class="hero-media">
+          <div class="media-card">
+            <img src="./images/hero.jpg" alt="옷마카세 히어로 이미지" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';" />
+            <div class="media-fallback" style="display:none;">
+              <div class="fallback-title">Hero Image</div>
+              <div class="fallback-desc">
+                ./images/hero.jpg 를 넣으면 이 자리에 히어로 이미지가 표시됩니다.
+              </div>
+            </div>
 
-.card{
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  background:rgba(255,255,255,.85);
-  padding:16px;
-  box-shadow:var(--shadow2);
-}
-.card img{
-  width:100%;
-  height:170px;
-  object-fit:cover;
-  border-radius:var(--radius2);
-  border:1px solid var(--line);
-  background:#fff;
-}
-.card h3{margin:12px 0 6px; letter-spacing:-.3px}
-.card p{margin:0; color:var(--muted); line-height:1.65}
+            <div class="floating">
+              <div class="float-badge">
+                <b>3초</b> 내 피팅 실행
+              </div>
+              <div class="float-badge">
+                상품 상세페이지에 <b>임베드</b>
+              </div>
+            </div>
+          </div>
 
-/* Steps */
-.steps-wrap{
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  background:rgba(255,255,255,.85);
-  box-shadow:var(--shadow2);
-  padding:18px;
-}
-.steps{
-  margin:0;
-  padding-left:18px;
-  color:var(--muted);
-  line-height:2.05;
-}
-.steps b{color:var(--text)}
+          <div class="mini-cards">
+            <div class="mini">
+              <div class="mini-icon">🧩</div>
+              <div>
+                <b>SDK/임베드</b>
+                <div class="mini-sub">개발 부담 최소화</div>
+              </div>
+            </div>
+            <div class="mini">
+              <div class="mini-icon">📏</div>
+              <div>
+                <b>핏 인사이트</b>
+                <div class="mini-sub">사이즈 추천 확장</div>
+              </div>
+            </div>
+            <div class="mini">
+              <div class="mini-icon">🧠</div>
+              <div>
+                <b>데이터 기반</b>
+                <div class="mini-sub">지표/추천 고도화</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-bg"></div>
+    </section>
 
-/* Cases */
-.cases{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:14px;
-}
-@media (max-width: 920px){
-  .cases{grid-template-columns:1fr}
-}
-.cases img{
-  width:100%;
-  height:270px;
-  object-fit:cover;
-  border-radius:var(--radius);
-  border:1px solid var(--line);
-  box-shadow:var(--shadow2);
-  background:#fff;
-}
-.note{color:var(--muted); line-height:1.7}
+    <!-- Problem / Why -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2>문제는 “사이즈 불안”입니다</h2>
+          <p>
+            온라인 구매에서 고객은 착용감과 핏을 확신하기 어렵습니다. 결과적으로 반품/교환이 늘고,
+            고객 경험과 운영 비용에 동시에 타격이 생깁니다.
+          </p>
+        </div>
 
-/* Partners */
-.partners{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:14px;
-}
-.partners span{
-  border:1px solid var(--line);
-  padding:8px 12px;
-  border-radius:999px;
-  color:#2b1600;
-  background:linear-gradient(180deg, rgba(255,176,32,.22), rgba(255,138,0,.10));
-  font-weight:900;
-}
+        <div class="grid-3">
+          <div class="card">
+            <h3>반품 비용 증가</h3>
+            <p>물류/CS/재고 회전 비용이 복합적으로 상승합니다.</p>
+          </div>
+          <div class="card">
+            <h3>전환율 저하</h3>
+            <p>구매 직전 “사이즈 고민”으로 이탈이 발생합니다.</p>
+          </div>
+          <div class="card">
+            <h3>브랜드 신뢰 하락</h3>
+            <p>핏 불만족 경험이 누적되면 재구매가 감소합니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-/* FAQ */
-details{
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  padding:14px 16px;
-  background:rgba(255,255,255,.85);
-  box-shadow:var(--shadow2);
-  margin:10px 0;
-}
-summary{cursor:pointer; font-weight:900; letter-spacing:-.2px}
-details p{color:var(--muted); line-height:1.75}
+    <!-- Product -->
+    <section class="section alt" id="product">
+      <div class="container">
+        <div class="section-head">
+          <h2>제품</h2>
+          <p>옷마카세는 “구매 전 피팅”을 표준 UX로 만드는 것을 목표로 합니다.</p>
+        </div>
 
-/* Contact */
-.contact-box{
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  padding:16px;
-  background:rgba(255,255,255,.85);
-  box-shadow:var(--shadow2);
-  color:var(--muted);
-  line-height:1.9;
-}
+        <div class="grid-3">
+          <article class="feature-card">
+            <div class="imgbox">
+              <img src="./images/product-avatar.png" alt="3D 아바타" onerror="this.style.display='none'; this.parentElement.classList.add('noimg');" />
+              <div class="img-placeholder">
+                product-avatar.png
+              </div>
+            </div>
+            <h3>3D 아바타 기반 피팅</h3>
+            <p>사용자 체형 정보를 바탕으로 착용 모습을 직관적으로 보여줍니다.</p>
+            <ul class="check">
+              <li>간단 프로필 기반</li>
+              <li>옷 실루엣/핏 확인</li>
+              <li>모바일 최적화</li>
+            </ul>
+          </article>
 
-/* Footer */
-.footer{
-  border-top:1px solid var(--line);
-  padding:22px 18px;
-  text-align:center;
-  color:var(--muted);
-  background:rgba(255,255,255,.55);
-}
+          <article class="feature-card">
+            <div class="imgbox">
+              <img src="./images/product-insights.png" alt="핏 인사이트" onerror="this.style.display='none'; this.parentElement.classList.add('noimg');" />
+              <div class="img-placeholder">
+                product-insights.png
+              </div>
+            </div>
+            <h3>사이즈 추천/핏 인사이트</h3>
+            <p>사이즈 미스 가능성을 줄이는 핏 지표를 제공합니다.</p>
+            <ul class="check">
+              <li>핏 지표(예: 타이트/레귤러)</li>
+              <li>교환/반품 리스크 표시</li>
+              <li>추천 로직 확장</li>
+            </ul>
+          </article>
 
-/* Small helpers if you want to wrap some areas */
-.cardlike{
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  background:rgba(255,255,255,.85);
-  box-shadow:var(--shadow2);
-  padding:18px;
-}
+          <article class="feature-card">
+            <div class="imgbox">
+              <img src="./images/how-it-works.png" alt="웹 임베드" onerror="this.style.display='none'; this.parentElement.classList.add('noimg');" />
+              <div class="img-placeholder">
+                how-it-works.png
+              </div>
+            </div>
+            <h3>웹 임베드/SDK</h3>
+            <p>쇼핑몰 상품 상세 페이지에 버튼 하나로 연결되는 형태를 가정합니다.</p>
+            <ul class="check">
+              <li>iframe/SDK 방식</li>
+              <li>이벤트 연동(장바구니 등)</li>
+              <li>트래킹/대시보드 확장</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head">
+          <h2>핵심 기능</h2>
+          <p>발표에서 “왜 이게 팔리는가”를 보여주는 기능 구성을 먼저 고정합니다.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="big-card">
+            <h3>구매 전 피팅 UX</h3>
+            <p>
+              고객이 상품 상세 페이지에서 바로 “입어보기”를 실행하고, 사이즈를 비교할 수 있도록 설계합니다.
+            </p>
+            <div class="chips">
+              <span>바로 실행</span><span>사이즈 비교</span><span>핏 지표</span><span>추천 확장</span>
+            </div>
+          </div>
+
+          <div class="big-card">
+            <h3>운영자 관점 도구</h3>
+            <p>
+              제품/사이즈별 반품 리스크, 조회→피팅→구매 전환 흐름을 데이터로 확인할 수 있는 형태로 확장 가능합니다.
+            </p>
+            <div class="chips">
+              <span>리스크 분석</span><span>퍼널 트래킹</span><span>AB 테스트</span><span>상품 최적화</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-3 mt">
+          <div class="icon-card">
+            <div class="icon">🖥️</div>
+            <h4>웹 최적화</h4>
+            <p>설치 없이 브라우저에서 실행되는 사용성을 우선합니다.</p>
+          </div>
+          <div class="icon-card">
+            <div class="icon">🧷</div>
+            <h4>연동 유연성</h4>
+            <p>상품 상세/장바구니/마이페이지 등 다양한 위치에서 호출 가능합니다.</p>
+          </div>
+          <div class="icon-card">
+            <div class="icon">🔒</div>
+            <h4>프라이버시 우선</h4>
+            <p>필요 최소 데이터로 경험을 만들고, 보안/정책에 맞춰 운영합니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Implementation / How -->
+    <section class="section alt" id="how">
+      <div class="container">
+        <div class="section-head">
+          <h2>도입 프로세스</h2>
+          <p>실제 사업 느낌은 “우리 도입하면 이렇게 굴러간다”를 명확히 보여줄 때 납니다.</p>
+        </div>
+
+        <div class="timeline">
+          <div class="step">
+            <div class="num">1</div>
+            <div class="content">
+              <h3>요건 정리</h3>
+              <p>연동 위치(상품 상세/장바구니), 목표 KPI(반품률/전환율), 데이터 범위를 합의합니다.</p>
+              <div class="meta">기간: 1~3일</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="num">2</div>
+            <div class="content">
+              <h3>SDK/임베드 적용</h3>
+              <p>테스트 페이지에 “입어보기” 버튼을 삽입하고 호출/콜백을 연결합니다.</p>
+              <div class="meta">기간: 3~7일</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="num">3</div>
+            <div class="content">
+              <h3>의류 데이터 적용</h3>
+              <p>사이즈 스펙(치수) 기반부터 시작해, 점진적으로 3D 데이터로 고도화합니다.</p>
+              <div class="meta">기간: 1~2주</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="num">4</div>
+            <div class="content">
+              <h3>성과 측정/확대</h3>
+              <p>AB 테스트로 반품/전환 개선 효과를 확인하고 카테고리 단위로 확대합니다.</p>
+              <div class="meta">기간: 2~4주</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cases -->
+    <section class="section" id="cases">
+      <div class="container">
+        <div class="section-head">
+          <h2>고객 사례 (발표용 예시)</h2>
+          <p>실제 기업 제안서처럼 “전/후 변화” 구조로 보여주면 설득력이 올라갑니다.</p>
+        </div>
+
+        <div class="case-grid">
+          <div class="case-card">
+            <div class="case-img">
+              <img src="./images/case-a.jpg" alt="사례 A" onerror="this.style.display='none'; this.parentElement.classList.add('noimg');" />
+              <div class="img-placeholder">case-a.jpg</div>
+            </div>
+            <div class="case-body">
+              <h3>사례 A: 아우터 카테고리</h3>
+              <p>사이즈 미스가 잦은 상품군에 “입어보기” 기능을 우선 적용합니다.</p>
+              <div class="case-metrics">
+                <span>반품률 ↓</span><span>체류시간 ↑</span><span>전환율 ↑</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="case-card">
+            <div class="case-img">
+              <img src="./images/case-b.jpg" alt="사례 B" onerror="this.style.display='none'; this.parentElement.classList.add('noimg');" />
+              <div class="img-placeholder">case-b.jpg</div>
+            </div>
+            <div class="case-body">
+              <h3>사례 B: 상의/니트</h3>
+              <p>핏/실루엣이 구매 결정에 큰 영향을 주는 카테고리에서 효과가 큽니다.</p>
+              <div class="case-metrics">
+                <span>구매확신 ↑</span><span>교환 ↓</span><span>리뷰 ↑</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note-banner">
+          <b>발표 팁:</b> 수치는 “가정 KPI”로 표시하고, “AB 테스트로 검증 후 확정”이라고 말하면 자연스럽습니다.
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="section alt" id="pricing">
+      <div class="container">
+        <div class="section-head">
+          <h2>가격 (제안 구조)</h2>
+          <p>현실적인 사업 느낌을 위해 “도입비 + 사용량 기반” 형태로 제시합니다.</p>
+        </div>
+
+        <div class="pricing">
+          <div class="price-card">
+            <div class="price-top">
+              <h3>Starter</h3>
+              <div class="price">₩0<span>/파일럿</span></div>
+              <p class="price-desc">발표/파일럿용. 핵심 UX 검증에 집중.</p>
+            </div>
+            <ul class="check">
+              <li>임베드 방식 데모</li>
+              <li>기본 피팅 화면</li>
+              <li>카테고리 1개</li>
+            </ul>
+            <a class="btn ghost full" href="#contact">파일럿 문의</a>
+          </div>
+
+          <div class="price-card highlight">
+            <div class="badge">추천</div>
+            <div class="price-top">
+              <h3>Business</h3>
+              <div class="price">협의<span>/월</span></div>
+              <p class="price-desc">운영 환경 적용. KPI 개선을 목표로 확장.</p>
+            </div>
+            <ul class="check">
+              <li>SDK/이벤트 연동</li>
+              <li>핏 인사이트/추천 확장</li>
+              <li>퍼널 트래킹(확장)</li>
+            </ul>
+            <a class="btn solid full" href="#contact">데모 요청</a>
+          </div>
+
+          <div class="price-card">
+            <div class="price-top">
+              <h3>Enterprise</h3>
+              <div class="price">맞춤<span>/연</span></div>
+              <p class="price-desc">대규모 트래픽/다카테고리/정교한 데이터 요구.</p>
+            </div>
+            <ul class="check">
+              <li>전용 SLA/지원</li>
+              <li>커스텀 대시보드</li>
+              <li>보안/정책 맞춤</li>
+            </ul>
+            <a class="btn ghost full" href="#contact">상담하기</a>
+          </div>
+        </div>
+
+        <div class="fineprint">
+          ※ 발표/과제용 페이지이므로 가격은 제안 구조 예시입니다. 실제 사업에서는 계약 조건에 따라 달라집니다.
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-head">
+          <h2>FAQ</h2>
+          <p>질문이 나올 만한 포인트를 먼저 막아두면 발표가 편해집니다.</p>
+        </div>
+
+        <div class="faq">
+          <details>
+            <summary>설치가 필요한가요?</summary>
+            <p>아니요. 웹에서 바로 실행되는 형태를 목표로 합니다.</p>
+          </details>
+          <details>
+            <summary>어떤 방식으로 연동하나요?</summary>
+            <p>상품 상세 페이지 버튼(임베드/SDK) 방식으로 연동하는 형태를 가정합니다.</p>
+          </details>
+          <details>
+            <summary>의류 데이터는 무엇이 필요하나요?</summary>
+            <p>최소한 사이즈 스펙(치수)이 필요하며, 점진적으로 이미지/3D 데이터로 고도화할 수 있습니다.</p>
+          </details>
+          <details>
+            <summary>개인정보/프라이버시는 어떻게 하나요?</summary>
+            <p>필요 최소 데이터로 경험을 구성하고, 운영 정책/보안 요구에 맞춰 설계를 확장합니다.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="section alt" id="contact">
+      <div class="container">
+        <div class="contact">
+          <div class="contact-left">
+            <h2>데모 요청 / 제휴 문의</h2>
+            <p>
+              발표에서 바로 보여줄 수 있는 데모 플로우(상품 상세 → 입어보기 → 사이즈 비교)를 준비할 수 있습니다.
+              아래 채널로 연락 주세요.
+            </p>
+
+            <div class="contact-box">
+              <div><b>Email</b> demo@ootmakase.com</div>
+              <div><b>제안</b> “상품 상세 페이지에서 3초 내 피팅 실행”</div>
+              <div><b>범위</b> 파일럿(카테고리 1개) → KPI 검증 → 확대</div>
+            </div>
+
+            <div class="subnote">
+              ※ 이 사이트는 발표/과제 데모용 랜딩입니다.
+            </div>
+          </div>
+
+          <div class="contact-right">
+            <div class="form-card">
+              <div class="form-head">
+                <b>빠른 문의</b>
+                <span>메일 주소는 예시입니다</span>
+              </div>
+
+              <form onsubmit="event.preventDefault(); alert('제출되었습니다(데모용).');">
+                <label>이름/회사</label>
+                <input placeholder="예: 홍의성 / OOTMAKASE" />
+
+                <label>이메일</label>
+                <input placeholder="예: name@company.com" />
+
+                <label>관심 분야</label>
+                <select>
+                  <option>가상 피팅 도입</option>
+                  <option>SDK/임베드 협업</option>
+                  <option>의류 데이터/3D 고도화</option>
+                  <option>기타</option>
+                </select>
+
+                <label>메시지</label>
+                <textarea placeholder="원하는 데모/연동 범위를 간단히 적어주세요."></textarea>
+
+                <button class="btn solid full big" type="submit">문의 보내기</button>
+              </form>
+
+              <div class="form-foot">
+                빠른 회신을 원하면 “도입 일정/목표 KPI”를 함께 남겨주세요.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <small>© 옷마카세 (OOTMAKASE). All rights reserved.</small>
+      <a href="#top">위로</a>
+    </div>
+  </footer>
+
+  <script>
+    // 부드러운 스크롤(발표용 완성도)
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        const href = a.getAttribute('href');
+        if (!href || href === '#') return;
+        const el = document.querySelector(href);
+        if (!el) return;
+        e.preventDefault();
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  </script>
+</body>
+</html>
