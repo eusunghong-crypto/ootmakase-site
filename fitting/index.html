@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>옷마카세 3D 피팅 데모</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background:#070a12; }
+    #wrap { position: fixed; inset: 0; display: grid; grid-template-columns: minmax(280px, 340px) 1fr; }
+    #panel { color:#e6e9f2; padding:14px; overflow:auto; border-right: 1px solid rgba(255,255,255,0.08); }
+    #panel h2 { margin: 0 0 10px; font-size: 14px; }
+    #panel .hint { margin: 0 0 12px; font-size: 12px; color: rgba(230,233,242,0.75); line-height: 1.45; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .field { display:grid; gap: 6px; }
+    label { font-size: 12px; color: rgba(230,233,242,0.85); }
+    input {
+      width: 100%; box-sizing: border-box;
+      padding: 10px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color:#e6e9f2; outline:none;
+    }
+    input:focus { border-color: rgba(255,255,255,0.25); }
+    .actions { display:flex; gap:10px; margin-top: 12px; }
+    button {
+      flex:1; padding:10px 12px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.10);
+      color:#e6e9f2; cursor:pointer; font-weight: 700;
+    }
+    button:hover { background: rgba(255,255,255,0.14); }
+
+    #view { position: relative; }
+    canvas { display:block; width:100%; height:100%; }
+    .badge {
+      position:absolute; left: 12px; bottom: 12px;
+      padding: 8px 10px; border-radius: 12px;
+      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.85);
+      font-size: 12px;
+    }
+
+    @media (max-width: 860px) {
+      #wrap { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      #panel { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    }
+  </style>
+</head>
+<body>
+<div id="wrap">
+  <div id="panel">
+    <h2>신체 데이터 입력 (12개, cm)</h2>
+    <p class="hint">
+      입력 즉시 오른쪽 3D 아바타가 갱신됩니다.<br/>
+      드래그: 회전 / 휠: 확대·축소
+    </p>
+
+    <div class="grid">
+      <div class="field"><label>가슴둘레</label><input id="C_chest" type="number" value="95" step="0.1" /></div>
+      <div class="field"><label>허리둘레</label><input id="C_waist" type="number" value="80" step="0.1" /></div>
+
+      <div class="field"><label>어깨넓이</label><input id="W_shoulder" type="number" value="44" step="0.1" /></div>
+      <div class="field"><label>몸통길이(어깨→고관절)</label><input id="L_torso" type="number" value="55" step="0.1" /></div>
+
+      <div class="field"><label>상완길이(어깨→팔꿈치)</label><input id="L_upperarm" type="number" value="32" step="0.1" /></div>
+      <div class="field"><label>하완길이(팔꿈치→손목)</label><input id="L_forearm" type="number" value="26" step="0.1" /></div>
+
+      <div class="field"><label>상완둘레</label><input id="C_upperarm" type="number" value="30" step="0.1" /></div>
+      <div class="field"><label>하완둘레</label><input id="C_forearm" type="number" value="26" step="0.1" /></div>
+
+      <div class="field"><label>허벅지둘레</label><input id="C_thigh" type="number" value="55" step="0.1" /></div>
+      <div class="field"><label>종아리둘레</label><input id="C_calf" type="number" value="36" step="0.1" /></div>
+
+      <div class="field"><label>다리총길이(바닥→고관절)</label><input id="L_leg" type="number" value="92" step="0.1" /></div>
+      <div class="field"><label>종아리길이(바닥→무릎)</label><input id="L_calf" type="number" value="48" step="0.1" /></div>
+    </div>
+
+    <div class="actions">
+      <button id="btnUpdate">갱신</button>
+      <button id="btnReset">예시값</button>
+    </div>
+  </div>
+
+  <div id="view">
+    <div class="badge">Ootmakase 3D Fitting Demo</div>
+    <canvas id="c"></canvas>
+  </div>
+</div>
+
+<script type="module">
+  import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+  import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const toM = (cm) => cm / 100;
+  const circToR = (c_m) => c_m / (2 * Math.PI);
+  const lerp = (a,b,t)=> a+(b-a)*t;
+  const smooth = (t)=> t*t*(3-2*t);
+
+  function lathe(profile, seg=64){
+    const pts = profile.map(p => new THREE.Vector2(p.r, p.y));
+    return new THREE.LatheGeometry(pts, seg);
+  }
+
+  function limb({L, r0, r1, cap=0.14}) {
+    const c = clamp(cap, 0.08, 0.2) * L;
+    const steps = 12;
+    const prof = [];
+    for (let i=0;i<=steps;i++){
+      const t=i/steps, y=t*L;
+      let r;
+      if (y < c) r = lerp(0.05*r0, r0, smooth(y/c));
+      else if (y > L-c) r = lerp(0.05*r1, r1, smooth((L-y)/c));
+      else r = lerp(r0, r1, smooth((y-c)/(L-2*c)));
+      prof.push({y,r});
+    }
+    return lathe(prof, 56);
+  }
+
+  function torso({L, rChest, rWaist, shoulderW}) {
+    const rPelvis = lerp(rWaist, rChest, 0.15) * 1.05;
+    const steps=18, prof=[];
+    for (let i=0;i<=steps;i++){
+      const t=i/steps, y=t*L;
+      const waistT=0.45;
+      let r = t<waistT
+        ? lerp(rPelvis, rWaist, smooth(t/waistT))
+        : lerp(rWaist, rChest, smooth((t-waistT)/(1-waistT)));
+
+      const ribC=0.78, ribW=0.18;
+      const bulge = Math.exp(-Math.pow((t-ribC)/ribW,2))*0.06;
+      r *= (1+bulge);
+      prof.push({y,r});
+    }
+    const geo = lathe(prof, 72);
+    const sx = clamp( shoulderW / ((2*rChest)*1.05), 0.85, 1.35 );
+    return { geo, sx };
+  }
+
+  const canvas = document.getElementById("c");
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x070a12);
+
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 50);
+  camera.position.set(1.6, 1.2, 2.2);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x223355, 0.9));
+  const key = new THREE.DirectionalLight(0xffffff, 1.2);
+  key.position.set(2.5, 4.5, 2.0);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048,2048);
+  scene.add(key);
+
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(20,20),
+    new THREE.MeshStandardMaterial({ color: 0x0b1020, roughness:1, metalness:0 })
+  );
+  ground.rotation.x = -Math.PI/2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  const matBody = new THREE.MeshStandardMaterial({ color: 0xcfd6e6, roughness:0.65, metalness:0.05 });
+  const matAccent = new THREE.MeshStandardMaterial({ color: 0x97a7d6, roughness:0.55, metalness:0.05 });
+
+  let avatar = null;
+
+  function readCm() {
+    const g = (id)=> parseFloat(document.getElementById(id).value);
+    return {
+      C_chest: g("C_chest"), C_waist: g("C_waist"), W_shoulder: g("W_shoulder"), L_torso: g("L_torso"),
+      L_upperarm: g("L_upperarm"), L_forearm: g("L_forearm"), C_upperarm: g("C_upperarm"), C_forearm: g("C_forearm"),
+      C_thigh: g("C_thigh"), C_calf: g("C_calf"), L_leg: g("L_leg"), L_calf: g("L_calf"),
+    };
+  }
+
+  function validate(cm){
+    const ok = (v)=> Number.isFinite(v) && v>0;
+    if (!Object.values(cm).every(ok)) return {ok:false, msg:"모든 값은 0보다 커야 합니다."};
+    if (cm.L_leg <= cm.L_calf + 5) return {ok:false, msg:"다리총길이는 종아리길이보다 충분히 커야 합니다."};
+    return {ok:true};
+  }
+
+  function rebuild(){
+    const cm = readCm();
+    const v = validate(cm);
+    if (!v.ok) { alert(v.msg); return; }
+
+    const chest = toM(cm.C_chest), waist = toM(cm.C_waist), shoulderW = toM(cm.W_shoulder);
+    const L_torso = toM(cm.L_torso), L_leg = toM(cm.L_leg), L_calf = toM(cm.L_calf);
+    const L_upper = toM(cm.L_upperarm), L_fore = toM(cm.L_forearm);
+    const rChest = circToR(chest), rWaist = circToR(waist);
+    const rUpper = circToR(toM(cm.C_upperarm)), rFore = circToR(toM(cm.C_forearm));
+    const rThigh = circToR(toM(cm.C_thigh)), rCalf = circToR(toM(cm.C_calf));
+
+    if (avatar) {
+      scene.remove(avatar);
+      avatar.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+      avatar = null;
+    }
+
+    const g = new THREE.Group();
+    const yHip = L_leg;
+    const yShoulder = yHip + L_torso;
+
+    // Torso
+    const t = torso({L: L_torso, rChest, rWaist, shoulderW});
+    const torsoMesh = new THREE.Mesh(t.geo, matBody);
+    torsoMesh.castShadow = true;
+    torsoMesh.position.set(0, yHip, 0);
+    torsoMesh.scale.set(t.sx, 1, 1);
+    g.add(torsoMesh);
+
+    // Pelvis hint
+    const pelvisH = clamp(L_torso*0.16, 0.06, 0.14);
+    const pelvisGeo = limb({L: pelvisH, r0: rWaist*1.05, r1: rWaist*1.10, cap:0.25});
+    const pelvis = new THREE.Mesh(pelvisGeo, matAccent);
+    pelvis.castShadow = true;
+    pelvis.position.set(0, yHip - pelvisH*0.45, 0);
+    pelvis.scale.set(t.sx*1.03, 1, 1.05);
+    g.add(pelvis);
+
+    // Neck + Head
+    const neckH = clamp(L_torso*0.10, 0.05, 0.10);
+    const neckGeo = limb({L: neckH, r0: rChest*0.21, r1: rChest*0.22, cap:0.35});
+    const neck = new THREE.Mesh(neckGeo, matBody);
+    neck.castShadow = true;
+    neck.position.set(0, yShoulder + neckH*0.05, 0);
+    g.add(neck);
+
+    const headR = clamp(rChest*0.42, 0.10, 0.16);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(headR, 32, 24), matBody);
+    head.castShadow = true;
+    head.position.set(0, yShoulder + neckH + headR*1.05, 0);
+    g.add(head);
+
+    // Arms (single smooth taper)
+    const armLen = L_upper + L_fore;
+    const shoulderX = (shoulderW/2) - rUpper*0.9; // 좌우 중심 정렬
+    const armGeo = limb({L: armLen, r0: rUpper, r1: rFore, cap:0.16});
+
+    const mkArm = (sign)=>{
+      const a = new THREE.Mesh(armGeo, matBody);
+      a.castShadow = true;
+      a.position.set(sign*shoulderX, yShoulder - armLen*0.96, 0);
+      a.rotation.z = sign*0.12;
+      a.rotation.x = 0.04;
+      return a;
+    };
+    g.add(mkArm(-1)); g.add(mkArm(+1));
+
+    // Legs (single smooth taper)
+    const hipW = shoulderW*0.58;
+    const hipX = hipW/2;
+    const legGeo = limb({L: L_leg, r0: rThigh, r1: rCalf, cap:0.12});
+
+    const mkLeg = (sign)=>{
+      const l = new THREE.Mesh(legGeo, matBody);
+      l.castShadow = true;
+      l.position.set(sign*hipX, 0, 0);
+      l.rotation.z = sign*-0.03;
+      return l;
+    };
+    g.add(mkLeg(-1)); g.add(mkLeg(+1));
+
+    // Feet
+    const footL = clamp(rCalf*3.0, 0.18, 0.28);
+    const footH = clamp(rCalf*0.6, 0.03, 0.05);
+    const footW = clamp(rCalf*1.4, 0.08, 0.12);
+    const mkFoot = (sign)=>{
+      const f = new THREE.Mesh(new THREE.BoxGeometry(footW, footH, footL), matAccent);
+      f.castShadow = true;
+      f.position.set(sign*hipX, footH*0.5, footL*0.18);
+      return f;
+    };
+    g.add(mkFoot(-1)); g.add(mkFoot(+1));
+
+    scene.add(g);
+    avatar = g;
+
+    controls.target.set(0, yHip + L_torso*0.55, 0);
+    controls.update();
+  }
+
+  document.getElementById("btnUpdate").addEventListener("click", rebuild);
+  document.getElementById("btnReset").addEventListener("click", ()=>{
+    const preset = {C_chest:95,C_waist:80,W_shoulder:44,L_torso:55,L_upperarm:32,L_forearm:26,C_upperarm:30,C_forearm:26,C_thigh:55,C_calf:36,L_leg:92,L_calf:48};
+    Object.entries(preset).forEach(([k,v])=> document.getElementById(k).value=v);
+    rebuild();
+  });
+
+  document.querySelectorAll("#panel input").forEach(inp=>{
+    inp.addEventListener("input", ()=> { clearTimeout(window.__t); window.__t=setTimeout(rebuild, 120); });
+  });
+
+  function resize(){
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    renderer.setSize(w,h,false);
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+  }
+  addEventListener("resize", resize);
+
+  function loop(){
+    requestAnimationFrame(loop);
+    resize();
+    controls.update();
+    renderer.render(scene, camera);
+  }
+
+  rebuild();
+  loop();
+</script>
+</body>
+</html>
