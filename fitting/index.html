@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>옷마카세 | 아바타 생성/조절 데모</title>
 
-  <!-- ✅ 핵심: importmap으로 bare specifier "three" 해결 -->
+  <!-- importmap: "three" bare specifier 해결 -->
   <script type="importmap">
   {
     "imports": {
@@ -75,6 +75,7 @@
       max-width: min(560px, calc(100% - 24px));
       line-height: 1.45;
       backdrop-filter: blur(8px);
+      white-space: pre-line;
     }
     .status b { color: #ffcf6a; }
     .status code{
@@ -174,7 +175,7 @@
 
   const $ = (id)=> document.getElementById(id);
   const statusEl = $("status");
-  const setStatus = (html)=> statusEl.innerHTML = html;
+  const setStatus = (txt)=> statusEl.textContent = txt;
 
   const DEFAULT_MODEL_URL = new URL("./assets/avatar.glb", location.href).toString();
   $("modelUrl").value = DEFAULT_MODEL_URL;
@@ -187,33 +188,42 @@
 
   // --- THREE setup ---
   const canvas = $("c");
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x070a12);
 
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 100);
+  // ✅ 핵심: far를 크게(기본 5000) 잡아서 "로드 됐는데 안 보임" 방지
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 5000);
   camera.position.set(1.7, 1.3, 2.6);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x223355, 0.9));
-  const key = new THREE.DirectionalLight(0xffffff, 1.15);
+  // 라이트 강화(어두운 재질 대비)
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x223355, 1.0));
+  const key = new THREE.DirectionalLight(0xffffff, 1.35);
   key.position.set(2.8, 5.0, 2.2);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
   scene.add(key);
 
+  // 바닥 + 약간 밝게
   const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(30, 30),
-    new THREE.MeshStandardMaterial({ color: 0x0b1020, roughness: 1, metalness: 0 })
+    new THREE.PlaneGeometry(40, 40),
+    new THREE.MeshStandardMaterial({ color: 0x0e1528, roughness: 1, metalness: 0 })
   );
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   scene.add(ground);
+
+  // 디버그용 그리드(아바타가 안 보여도 바닥 기준 확인 가능)
+  const grid = new THREE.GridHelper(20, 20, 0x334466, 0x223344);
+  grid.material.transparent = true;
+  grid.material.opacity = 0.25;
+  scene.add(grid);
 
   const loader = new GLTFLoader();
 
@@ -328,6 +338,9 @@
     if (bones.rUpperArm) scaleBoneXOffset(bones.rUpperArm, sShoulderW);
     if (bones.lUpperLeg) scaleBoneXOffset(bones.lUpperLeg, sHipW);
     if (bones.rUpperLeg) scaleBoneXOffset(bones.rUpperLeg, sHipW);
+
+    // 스켈레톤 갱신(가끔 안 보이는 케이스 방지)
+    modelGroup.updateMatrixWorld(true);
   }
 
   function setupShadows(root){
@@ -335,28 +348,75 @@
       if (o.isMesh){
         o.castShadow = true;
         o.receiveShadow = false;
+        // 혹시 재질이 너무 어두우면 약간 보정(원하면 지워도 됨)
+        if (o.material && o.material.isMeshStandardMaterial){
+          o.material.roughness = Math.min(1, o.material.roughness ?? 0.8);
+        }
       }
     });
   }
 
-  function frameCamera(root){
+  function computeBox(root){
+    root.updateWorldMatrix(true, true);
     const box = new THREE.Box3().setFromObject(root);
+
+    // ✅ 바운딩박스가 비정상(0/NaN)이면: geometry bounding box 강제 계산
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    if (!isFinite(size.x) || !isFinite(size.y) || !isFinite(size.z) || (size.x + size.y + size.z) < 1e-6){
+      root.traverse(o=>{
+        if (o.isMesh && o.geometry){
+          o.geometry.computeBoundingBox?.();
+          o.geometry.computeBoundingSphere?.();
+        }
+      });
+      root.updateWorldMatrix(true, true);
+      return new THREE.Box3().setFromObject(root);
+    }
+    return box;
+  }
+
+  function placeOnGroundAndFrame(root){
+    const box = computeBox(root);
     const size = new THREE.Vector3();
     const center = new THREE.Vector3();
     box.getSize(size);
     box.getCenter(center);
 
-    const maxDim = Math.max(size.x, size.y, size.z);
+    // ✅ 바닥 위로 올리기(최저 y를 0 근처로)
+    root.position.y += (-box.min.y);
+
+    // 올린 후 다시 계산
+    const box2 = computeBox(root);
+    const size2 = new THREE.Vector3();
+    const center2 = new THREE.Vector3();
+    box2.getSize(size2);
+    box2.getCenter(center2);
+
+    const maxDim = Math.max(size2.x, size2.y, size2.z);
     const dist = maxDim * 1.8;
 
-    camera.position.set(center.x + dist*0.65, center.y + dist*0.55, center.z + dist*0.85);
-    controls.target.copy(center.clone().add(new THREE.Vector3(0, maxDim*0.15, 0)));
+    // ✅ far 자동 확장 (이게 핵심)
+    camera.far = Math.max(5000, dist * 20);
+    camera.updateProjectionMatrix();
+
+    camera.position.set(center2.x + dist*0.65, center2.y + dist*0.55, center2.z + dist*0.85);
+    controls.target.copy(center2.clone().add(new THREE.Vector3(0, maxDim*0.15, 0)));
     controls.update();
+
+    return { size: size2, center: center2, maxDim, far: camera.far };
   }
 
   function clearModel(){
     if (!modelGroup) return;
     scene.remove(modelGroup);
+    modelGroup.traverse(o=>{
+      if (o.geometry) o.geometry.dispose?.();
+      if (o.material){
+        if (Array.isArray(o.material)) o.material.forEach(m=> m.dispose?.());
+        else o.material.dispose?.();
+      }
+    });
     modelGroup = null;
     skeleton = null;
     bones = {};
@@ -365,7 +425,7 @@
 
   async function loadFromUrl(url){
     try{
-      setStatus(`<b>상태:</b> 로딩중...<br/><b>요청 URL:</b> <code>${url}</code>`);
+      setStatus(`상태: 로딩중...\n요청 URL: ${url}`);
       clearModel();
 
       const gltf = await loader.loadAsync(url);
@@ -376,22 +436,24 @@
       scene.add(modelGroup);
 
       const sk = findFirstSkinnedMesh(modelGroup);
-      if (!sk || !sk.skeleton){
-        frameCamera(modelGroup);
-        setStatus(`<b>상태:</b> 모델 로드 완료<br/><b>경고:</b> SkinnedMesh(스켈레톤)를 찾지 못했습니다.`);
-        return;
+      if (sk && sk.skeleton){
+        skeleton = sk.skeleton;
+        captureBase();
+        mapBones();
       }
 
-      skeleton = sk.skeleton;
-      captureBase();
-      mapBones();
-      frameCamera(modelGroup);
+      const info = placeOnGroundAndFrame(modelGroup);
       applyAdjust();
 
-      setStatus(`<b>상태:</b> 아바타 로드 완료<br/><b>스켈레톤:</b> ${skeleton.bones.length} bones`);
+      setStatus(
+        `상태: 아바타 로드 완료\n` +
+        `스켈레톤: ${skeleton ? skeleton.bones.length : "없음"} bones\n` +
+        `bbox: ${info.size.x.toFixed(2)} x ${info.size.y.toFixed(2)} x ${info.size.z.toFixed(2)}\n` +
+        `camera.far: ${info.far.toFixed(0)}`
+      );
     }catch(err){
       console.error(err);
-      setStatus(`<b>상태:</b> 로드 실패<br/><span style="color:#ff8a8a">${String(err?.message || err)}</span>`);
+      setStatus(`상태: 로드 실패\n${String(err?.message || err)}`);
     }
   }
 
@@ -424,7 +486,7 @@
     const cfg = {};
     for (const id of sliderIds) cfg[id] = Number($(id).value);
     localStorage.setItem("ootmakase_avatar_cfg", JSON.stringify(cfg));
-    setStatus(`<b>상태:</b> 설정 저장 완료 (localStorage)`);
+    setStatus(`상태: 설정 저장 완료 (localStorage)`);
   });
 
   for (const id of sliderIds){
