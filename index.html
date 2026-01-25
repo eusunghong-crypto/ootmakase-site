@@ -5,11 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>옷마카세 | 3D 가상 피팅 솔루션</title>
   <meta name="description" content="옷마카세는 웹 기반 3D 가상 피팅으로 사이즈 미스와 반품을 줄이고 전환율을 높입니다." />
-  <link rel="stylesheet" href="./styles.css?v=3" />
+  <link rel="stylesheet" href="./styles.css?v=4" />
 </head>
 
 <body>
-  <!-- Topbar -->
   <header class="topbar">
     <div class="container topbar-inner">
       <a class="brand" href="#top" aria-label="옷마카세 홈">
@@ -32,7 +31,6 @@
     </div>
   </header>
 
-  <!-- Hero -->
   <main id="top">
     <section class="hero">
       <div class="container hero-grid">
@@ -74,7 +72,6 @@
         </div>
 
         <div class="hero-media">
-          <!-- 아래 3개 이미지 파일명만 맞추면 자동으로 예쁘게 뜸 -->
           <div class="media-card">
             <img src="./images/hero_main.jpg" alt="3D 가상 피팅 시연 이미지" />
           </div>
@@ -90,7 +87,6 @@
       </div>
     </section>
 
-    <!-- Product -->
     <section id="product" class="section">
       <div class="container">
         <div class="section-title">
@@ -128,14 +124,23 @@
               <li>AB 테스트 가능한 구성</li>
             </ul>
           </div>
+
           <div class="split-media">
-            <img src="./images/product-avatar.mp4" alt="제품 화면 예시" />
+            <!-- ✅ 여기: product-avatar.png → product-avatar.mp4 로 교체 -->
+            <video
+              class="productVideo"
+              src="./images/product-avatar.mp4"
+              autoplay
+              muted
+              loop
+              playsinline
+              preload="metadata"
+            ></video>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- How / Flow Diagram -->
     <section id="how" class="section alt">
       <div class="container">
         <div class="section-title">
@@ -143,7 +148,6 @@
           <p>실제 서비스 론칭 관점에서 “준비 → 연동 → 운영” 흐름으로 정리했습니다.</p>
         </div>
 
-        <!-- Arrow diagram -->
         <div class="flow">
           <div class="flow-step">
             <div class="flow-badge">1</div>
@@ -194,7 +198,6 @@
       </div>
     </section>
 
-    <!-- Cases -->
     <section id="cases" class="section">
       <div class="container">
         <div class="section-title">
@@ -221,7 +224,6 @@
       </div>
     </section>
 
-    <!-- FAQ -->
     <section id="faq" class="section alt">
       <div class="container">
         <div class="section-title">
@@ -250,7 +252,6 @@
       </div>
     </section>
 
-    <!-- Company -->
     <section id="company" class="section">
       <div class="container">
         <div class="section-title">
@@ -275,7 +276,6 @@
       </div>
     </section>
 
-    <!-- Contact -->
     <section id="contact" class="section alt">
       <div class="container">
         <div class="section-title">
@@ -286,7 +286,7 @@
         <div class="contact">
           <div class="contact-box">
             <h3>연락 채널</h3>
-            <p class="muted">발표/과제용이면 아래 내용만 채워도 충분합니다.</p>
+            <p class="muted">필요하면 이 부분도 실제 회사 정보로 바꿔주면 됩니다.</p>
             <ul class="bullets">
               <li>이메일: <span class="mono">contact@ootmakase.com</span></li>
               <li>담당: <span class="mono">Business / Tech</span></li>
@@ -308,7 +308,7 @@
               <textarea rows="4" placeholder="예: 상품 상세에 입어보기 버튼 추가, 2주 PoC 등"></textarea>
             </label>
             <button class="btn btn-primary" type="submit">요청 보내기</button>
-            <p class="fineprint">※ 데모/문의 폼은 현재 정적 페이지이므로 “전송”은 동작하지 않습니다. (원하면 실제 전송 기능도 붙여줄 수 있음)</p>
+            <p class="fineprint">※ 정적 페이지라 전송은 동작하지 않습니다. 원하면 실제 전송도 붙일 수 있습니다.</p>
           </form>
         </div>
       </div>
