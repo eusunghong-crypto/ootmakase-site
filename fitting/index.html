@@ -16,30 +16,11 @@
       background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
     }
 
-    .top {
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom: 10px;
-    }
-
+    .top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom: 10px; }
     #panel h2 { margin: 0; font-size: 14px; letter-spacing: -0.2px; }
-    #panel .hint {
-      margin: 8px 0 12px;
-      font-size: 12px;
-      color: rgba(230,233,242,0.78);
-      line-height: 1.55;
-    }
+    #panel .hint { margin: 8px 0 12px; font-size: 12px; color: rgba(230,233,242,0.78); line-height: 1.55; }
 
-    .section-title{
-      margin: 14px 0 8px;
-      font-size: 12px;
-      font-weight: 800;
-      color: rgba(230,233,242,0.92);
-      letter-spacing: -0.2px;
-    }
-
+    .section-title{ margin: 14px 0 8px; font-size: 12px; font-weight: 800; color: rgba(230,233,242,0.92); letter-spacing: -0.2px; }
     .row { display:flex; gap:8px; align-items:center; }
     .row > * { flex: 1; }
 
@@ -55,17 +36,9 @@
     }
     input:focus { border-color: rgba(255,255,255,0.25); }
 
-    input[type="range"]{
-      width:100%;
-      accent-color: #ffb020;
-    }
+    input[type="range"]{ width:100%; accent-color: #ffb020; }
 
-    .kv {
-      display:flex; align-items:center; justify-content:space-between;
-      gap:10px; font-size: 12px;
-      color: rgba(230,233,242,0.75);
-      margin-top: 6px;
-    }
+    .kv { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size: 12px; color: rgba(230,233,242,0.75); margin-top: 6px; }
 
     .actions { display:flex; gap:10px; margin-top: 10px; }
     button {
@@ -75,28 +48,16 @@
       color:#e6e9f2; cursor:pointer; font-weight: 800;
     }
     button:hover { background: rgba(255,255,255,0.14); }
-    button.primary {
-      border-color: rgba(255,176,32,0.25);
-      background: rgba(255,176,32,0.12);
-    }
+    button.primary { border-color: rgba(255,176,32,0.25); background: rgba(255,176,32,0.12); }
 
-    .small {
-      font-size: 11px;
-      color: rgba(230,233,242,0.62);
-      line-height: 1.5;
-      margin-top: 10px;
-    }
+    .small { font-size: 11px; color: rgba(230,233,242,0.62); line-height: 1.5; margin-top: 10px; }
 
     .pill {
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 8px 10px;
-      border-radius: 999px;
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px; border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(255,255,255,0.06);
-      font-size: 12px;
-      color: rgba(230,233,242,0.85);
+      font-size: 12px; color: rgba(230,233,242,0.85);
       white-space: nowrap;
     }
 
@@ -156,7 +117,7 @@
 
     <div class="section-title">1) 아바타 로드</div>
     <div class="field">
-      <label>기본 경로 (이 페이지 기준으로 자동 계산된 상대경로를 사용합니다)</label>
+      <label>기본 경로 (이 페이지 기준 상대경로로 자동 계산)</label>
       <div class="row">
         <input id="modelUrl" type="text" value="" />
         <button id="btnLoad" class="primary">로드</button>
@@ -218,33 +179,43 @@
     <div class="small">
       주의: 아바타 파일마다 본(뼈) 이름이 다를 수 있습니다. 본 자동 탐지를 했지만,
       탐지가 안 되면 우측 상단 상태창에 “어떤 본을 못 찾았다”가 표시됩니다.
-      (Mixamo / VRM / RPM 계열은 대부분 동작합니다.)
     </div>
   </div>
 
   <div id="view">
-    <div class="status" id="status">
-      <b>상태:</b> 초기화 중...
-    </div>
+    <div class="status" id="status"><b>상태:</b> 초기화 중...</div>
     <div class="badge">Ootmakase | Avatar Adjust</div>
     <canvas id="c"></canvas>
   </div>
 </div>
 
 <script type="module">
+  // 중요: "three" 같은 bare specifier를 쓰면 GitHub Pages에서 바로 실패합니다.
+  // 아래처럼 CDN 절대 URL로만 import해야 합니다.
   import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
   import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
   import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
 
-  // --------------------------
-  // 경로 자동 계산 (핵심 수정)
-  // - 절대경로(/assets/...)를 쓰면 GitHub Pages의 "루트"로 해석되어 실패할 수 있음
-  // - 이 페이지(fitting/) 기준 상대경로로 항상 맞게 만듦
-  // --------------------------
-  const DEFAULT_MODEL_URL = new URL("./assets/avatar.glb", location.href).toString();
-
-  // ---------- Basic three ----------
   const $ = (id)=> document.getElementById(id);
+
+  // (핵심) fitting/ 기준 상대경로 → 절대 URL로 자동 계산
+  const DEFAULT_MODEL_URL = new URL("./assets/avatar.glb", location.href).toString();
+  $("modelUrl").value = DEFAULT_MODEL_URL;
+
+  const statusEl = $("status");
+  const pillState = $("pillState");
+  const setStatus = (html)=> statusEl.innerHTML = html;
+  const setPill = (txt)=> pillState.textContent = txt;
+
+  const sliderIds = ["S_all","S_torso","S_leg","S_arm","S_shoulderW","S_hipW"];
+  function syncSliderLabels(){
+    for (const id of sliderIds){
+      $(id+"_v").textContent = Number($(id).value).toFixed(2);
+    }
+  }
+  syncSliderLabels();
+
+  // ---------- three scene ----------
   const canvas = $("c");
   const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -274,28 +245,11 @@
   ground.receiveShadow = true;
   scene.add(ground);
 
-  // ---------- UI helpers ----------
-  const statusEl = $("status");
-  const pillState = $("pillState");
-  function setStatus(html){ statusEl.innerHTML = html; }
-  function setPill(text){ pillState.textContent = text; }
-
-  const sliderIds = ["S_all","S_torso","S_leg","S_arm","S_shoulderW","S_hipW"];
-  function syncSliderLabels(){
-    for (const id of sliderIds){
-      $(id+"_v").textContent = Number($(id).value).toFixed(2);
-    }
-  }
-  syncSliderLabels();
-
-  // 입력칸 기본값을 "자동 계산된 URL"로 고정
-  $("modelUrl").value = DEFAULT_MODEL_URL;
-
-  // ---------- Avatar state ----------
-  let modelGroup = null;     // gltf.scene
-  let skinnedRoot = null;    // first SkinnedMesh
-  let skeleton = null;       // skeleton
-  let bones = {};            // mapped bones
+  // ---------- avatar state ----------
+  let modelGroup = null;
+  let skinnedRoot = null;
+  let skeleton = null;
+  let bones = {};
 
   const base = {
     groupScale: new THREE.Vector3(1,1,1),
@@ -307,6 +261,7 @@
   function findBoneByAliases(aliases){
     if (!skeleton) return null;
     const aliasSet = aliases.map(normalizeName);
+
     for (const b of skeleton.bones){
       const n = normalizeName(b.name);
       if (aliasSet.includes(n)) return b;
@@ -356,27 +311,27 @@
 
   function mapBones(){
     bones = {};
-    bones.hips   = findBoneByAliases(["hips", "mixamorighips", "j_bip_c_hips", "pelvis"]);
-    bones.spine  = findBoneByAliases(["spine", "mixamorigspine", "j_bip_c_spine"]);
-    bones.chest  = findBoneByAliases(["spine2","chest","upperchest","mixamorigspine2","mixamorigchest","j_bip_c_chest"]);
-    bones.neck   = findBoneByAliases(["neck","mixamorigneck","j_bip_c_neck"]);
-    bones.head   = findBoneByAliases(["head","mixamorighead","j_bip_c_head"]);
+    bones.hips   = findBoneByAliases(["hips","pelvis","j_bip_c_hips","mixamorighips"]);
+    bones.spine  = findBoneByAliases(["spine","j_bip_c_spine","mixamorigspine"]);
+    bones.chest  = findBoneByAliases(["spine2","chest","upperchest","j_bip_c_chest","mixamorigspine2","mixamorigchest"]);
+    bones.neck   = findBoneByAliases(["neck","j_bip_c_neck","mixamorigneck"]);
+    bones.head   = findBoneByAliases(["head","j_bip_c_head","mixamorighead"]);
 
-    bones.lUpperArm = findBoneByAliases(["leftupperarm","l_upperarm","mixamorigleftarm","mixamorigleftupperarm","j_bip_l_upperarm","leftarm"]);
-    bones.lLowerArm = findBoneByAliases(["leftlowerarm","l_lowerarm","mixamorigleftforearm","mixamorigleftlowerarm","j_bip_l_lowerarm","leftforearm"]);
-    bones.lHand     = findBoneByAliases(["lefthand","l_hand","mixamoriglefthand","j_bip_l_hand"]);
+    bones.lUpperArm = findBoneByAliases(["leftupperarm","l_upperarm","j_bip_l_upperarm","mixamorigleftupperarm","mixamorigleftarm"]);
+    bones.lLowerArm = findBoneByAliases(["leftlowerarm","l_lowerarm","j_bip_l_lowerarm","mixamorigleftlowerarm","mixamorigleftforearm"]);
+    bones.lHand     = findBoneByAliases(["lefthand","l_hand","j_bip_l_hand","mixamoriglefthand"]);
 
-    bones.rUpperArm = findBoneByAliases(["rightupperarm","r_upperarm","mixamorigrightarm","mixamorigrightupperarm","j_bip_r_upperarm","rightarm"]);
-    bones.rLowerArm = findBoneByAliases(["rightlowerarm","r_lowerarm","mixamorigrightforearm","mixamorigrightlowerarm","j_bip_r_lowerarm","rightforearm"]);
-    bones.rHand     = findBoneByAliases(["righthand","r_hand","mixamorigrighthand","j_bip_r_hand"]);
+    bones.rUpperArm = findBoneByAliases(["rightupperarm","r_upperarm","j_bip_r_upperarm","mixamorigrighupperarm","mixamorigrightupperarm","mixamorigrightarm"]);
+    bones.rLowerArm = findBoneByAliases(["rightlowerarm","r_lowerarm","j_bip_r_lowerarm","mixamorigrightlowerarm","mixamorigrightforearm"]);
+    bones.rHand     = findBoneByAliases(["righthand","r_hand","j_bip_r_hand","mixamorigrighthand"]);
 
-    bones.lUpperLeg = findBoneByAliases(["leftupperleg","l_upperleg","mixamorigleftupleg","j_bip_l_upperleg","leftthigh","upleg"]);
-    bones.lLowerLeg = findBoneByAliases(["leftlowerleg","l_lowerleg","mixamorigleftleg","j_bip_l_lowerleg","leftshin","leg"]);
-    bones.lFoot     = findBoneByAliases(["leftfoot","l_foot","mixamorigleftfoot","j_bip_l_foot"]);
+    bones.lUpperLeg = findBoneByAliases(["leftupperleg","l_upperleg","j_bip_l_upperleg","mixamorigleftupleg"]);
+    bones.lLowerLeg = findBoneByAliases(["leftlowerleg","l_lowerleg","j_bip_l_lowerleg","mixamorigleftleg"]);
+    bones.lFoot     = findBoneByAliases(["leftfoot","l_foot","j_bip_l_foot","mixamorigleftfoot"]);
 
-    bones.rUpperLeg = findBoneByAliases(["rightupperleg","r_upperleg","mixamorigrightupleg","j_bip_r_upperleg","rightthigh"]);
-    bones.rLowerLeg = findBoneByAliases(["rightlowerleg","r_lowerleg","mixamorigrightleg","j_bip_r_lowerleg","rightshin"]);
-    bones.rFoot     = findBoneByAliases(["rightfoot","r_foot","mixamorigrightfoot","j_bip_r_foot"]);
+    bones.rUpperLeg = findBoneByAliases(["rightupperleg","r_upperleg","j_bip_r_upperleg","mixamorigrightupleg"]);
+    bones.rLowerLeg = findBoneByAliases(["rightlowerleg","r_lowerleg","j_bip_r_lowerleg","mixamorigrightleg"]);
+    bones.rFoot     = findBoneByAliases(["rightfoot","r_foot","j_bip_r_foot","mixamorigrightfoot"]);
 
     const must = [
       ["hips","hips"], ["spine","spine"], ["chest","chest"],
@@ -389,10 +344,10 @@
 
     let msg = `<b>상태:</b> 아바타 로드 완료<br/>`;
     msg += `<b>로드 경로:</b> <code>${$("modelUrl").value}</code><br/>`;
-    msg += `<b>스켈레톤:</b> ${skeleton.bones.length} bones 탐지<br/>`;
+    msg += `<b>스켈레톤:</b> ${skeleton?.bones?.length ?? 0} bones 탐지<br/>`;
     if (missing.length){
       msg += `<b>경고:</b> 일부 본 탐지 실패 → <span style="color:#ff8a8a;">${missing.join(", ")}</span><br/>`;
-      msg += `<span style="color:rgba(255,255,255,0.72)">본 이름이 특이한 모델이면 본 이름 규칙에 맞춰 매핑을 조정해야 합니다.</span>`;
+      msg += `<span style="color:rgba(255,255,255,0.72)">본 이름이 특이한 모델이면 매핑을 조정해야 합니다.</span>`;
       setPill("부분 동작");
     } else {
       msg += `<b>OK:</b> 주요 본 탐지 성공 (길이/폭 조절 가능)`;
@@ -417,9 +372,8 @@
 
     if (bones.spine && bones.chest) scaleChildOffset(bones.spine, bones.chest, sTorso);
     else if (bones.hips && bones.spine) scaleChildOffset(bones.hips, bones.spine, sTorso);
-
     if (bones.chest && bones.neck) scaleChildOffset(bones.chest, bones.neck, sTorso);
-    if (bones.neck && bones.head) scaleChildOffset(bones.neck, bones.head, sTorso);
+    if (bones.neck && bones.head)  scaleChildOffset(bones.neck, bones.head, sTorso);
 
     if (bones.lUpperLeg && bones.lLowerLeg) scaleChildOffset(bones.lUpperLeg, bones.lLowerLeg, sLeg);
     if (bones.lLowerLeg && bones.lFoot)     scaleChildOffset(bones.lLowerLeg, bones.lFoot, sLeg);
@@ -433,19 +387,11 @@
 
     if (bones.lUpperArm) scaleBoneXOffset(bones.lUpperArm, sShoulderW);
     if (bones.rUpperArm) scaleBoneXOffset(bones.rUpperArm, sShoulderW);
-
     if (bones.lUpperLeg) scaleBoneXOffset(bones.lUpperLeg, sHipW);
     if (bones.rUpperLeg) scaleBoneXOffset(bones.rUpperLeg, sHipW);
-
-    const hips = bones.hips;
-    if (hips){
-      const hipsWorld = new THREE.Vector3();
-      hips.getWorldPosition(hipsWorld);
-      controls.target.lerp(hipsWorld.clone().add(new THREE.Vector3(0, 0.6*sAll, 0)), 0.15);
-    }
   }
 
-  // ---------- Load model ----------
+  // ---------- load model ----------
   const loader = new GLTFLoader();
 
   function clearCurrentModel(){
@@ -455,7 +401,7 @@
       if (o.isMesh){
         if (o.geometry) o.geometry.dispose();
         if (Array.isArray(o.material)) o.material.forEach(m=> m.dispose && m.dispose());
-        else if (o.material) o.material.dispose && o.material.dispose();
+        else if (o.material) o.material.dispose && m.dispose();
       }
     });
     modelGroup = null;
@@ -496,19 +442,6 @@
     controls.update();
   }
 
-  function guessHelpfulError(url){
-    // GitHub Pages에서 가장 흔한 실수: /assets/... 절대경로
-    try{
-      const u = new URL(url, location.href);
-      if (u.pathname.startsWith("/assets/")){
-        return `경로가 <code>/assets/...</code>로 시작합니다. 이건 "도메인 루트" 기준이라 GitHub Pages에서 404가 날 수 있어요.<br/>
-                지금 페이지 기준으로 <code>./assets/avatar.glb</code> 또는 자동 계산된 URL(<code>${DEFAULT_MODEL_URL}</code>)을 사용하세요.`;
-      }
-    }catch(_){}
-    return `브라우저에서 직접 열어보세요: <code>${DEFAULT_MODEL_URL}</code><br/>
-            이 주소가 404면, 파일 커밋/푸시 또는 Pages 배포가 반영되지 않은 것입니다.`;
-  }
-
   async function loadFromUrl(url){
     try{
       setPill("로딩중");
@@ -521,7 +454,6 @@
       if (!modelGroup) throw new Error("gltf.scene is empty");
 
       setupShadows(modelGroup);
-      modelGroup.position.set(0, 0, 0);
       scene.add(modelGroup);
 
       skinnedRoot = findFirstSkinnedMesh(modelGroup);
@@ -530,8 +462,7 @@
         setStatus(
           `<b>상태:</b> 모델 로드 완료<br/>
            <b>경고:</b> SkinnedMesh(스켈레톤)를 찾지 못했습니다.<br/>
-           이 기능은 “스켈레톤 포함 GLB”에서만 동작합니다.<br/>
-           <span style="color:rgba(255,255,255,0.72)">해결: 스켈레톤이 포함된 아바타(GLB/VRM/Mixamo rig 등)로 교체하세요.</span>`
+           이 기능은 “스켈레톤 포함 GLB”에서만 동작합니다.`
         );
         frameCameraToModel(modelGroup);
         return;
@@ -542,81 +473,41 @@
       mapBones();
       frameCameraToModel(modelGroup);
 
-      // apply current sliders
       applyAdjust();
-      persistToLocal();
 
     }catch(err){
       console.error(err);
       setPill("실패");
       setStatus(
         `<b>상태:</b> 로드 실패<br/>
-         <span style="color:#ff8a8a">${String(err?.message || err)}</span><br/><br/>
-         <b>체크:</b><br/>${guessHelpfulError($("modelUrl").value)}`
+         <span style="color:#ff8a8a">${String(err?.message || err)}</span><br/>
+         <span style="color:rgba(255,255,255,0.72)">경로가 <code>/assets/...</code>로 시작하면 실패합니다. <code>./assets/avatar.glb</code>를 사용하세요.</span>`
       );
     }
   }
 
-  // ---------- Save/Load config ----------
-  function readConfig(){
-    return {
-      S_all: Number($("S_all").value),
-      S_torso: Number($("S_torso").value),
-      S_leg: Number($("S_leg").value),
-      S_arm: Number($("S_arm").value),
-      S_shoulderW: Number($("S_shoulderW").value),
-      S_hipW: Number($("S_hipW").value),
-    };
-  }
+  // ---------- events ----------
+  $("btnLoad").addEventListener("click", ()=>{
+    const raw = $("modelUrl").value.trim();
+    if (!raw) return;
 
-  function applyConfig(cfg){
-    for (const id of sliderIds){
-      if (cfg[id] == null) continue;
-      $(id).value = cfg[id];
+    // "/assets/..." 같은 루트경로면 자동 교정
+    let url = raw;
+    if (raw.startsWith("/assets/")) {
+      url = DEFAULT_MODEL_URL;
+      $("modelUrl").value = url;
+    } else {
+      url = new URL(raw, location.href).toString();
     }
-    syncSliderLabels();
-    applyAdjust();
-    persistToLocal();
-  }
-
-  function persistToLocal(){
-    try{
-      localStorage.setItem("ootmakase_avatar_cfg", JSON.stringify(readConfig()));
-    }catch(_){}
-  }
-
-  function restoreFromLocal(){
-    try{
-      const raw = localStorage.getItem("ootmakase_avatar_cfg");
-      if (!raw) return;
-      const cfg = JSON.parse(raw);
-      applyConfig(cfg);
-    }catch(_){}
-  }
-
-  $("btnSave").addEventListener("click", ()=>{
-    const cfg = readConfig();
-    const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "ootmakase-avatar-config.json";
-    a.click();
-    persistToLocal();
+    loadFromUrl(url);
   });
 
-  $("btnLoadCfg").addEventListener("click", ()=>{
-    const f = $("cfgPick").files?.[0];
-    if (!f) { alert("불러올 JSON 파일을 선택하세요."); return; }
-    const reader = new FileReader();
-    reader.onload = ()=>{
-      try{
-        const cfg = JSON.parse(reader.result);
-        applyConfig(cfg);
-      }catch(_){
-        alert("JSON 형식이 올바르지 않습니다.");
-      }
-    };
-    reader.readAsText(f);
+  $("filePick").addEventListener("change", (e)=>{
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const url = URL.createObjectURL(f);
+    $("modelUrl").value = "(file) " + f.name;
+    loadFromUrl(url);
   });
 
   $("btnReset").addEventListener("click", ()=>{
@@ -628,52 +519,18 @@
     $("S_hipW").value = 1.00;
     syncSliderLabels();
     applyAdjust();
-    persistToLocal();
   });
 
-  // live update sliders
-  let t = null;
+  let tick = null;
   for (const id of sliderIds){
     $(id).addEventListener("input", ()=>{
       syncSliderLabels();
-      clearTimeout(t);
-      t = setTimeout(()=>{ applyAdjust(); persistToLocal(); }, 30);
+      clearTimeout(tick);
+      tick = setTimeout(()=> applyAdjust(), 20);
     });
   }
 
-  // Buttons
-  $("btnLoad").addEventListener("click", ()=>{
-    // 사용자가 잘못해서 "/assets/..." 같은 걸 넣어도, 페이지 기준으로 한 번 더 보정해서 시도
-    // 단, http(s) 절대 URL이면 그대로 사용
-    const raw = $("modelUrl").value.trim();
-    if (!raw) return;
-
-    let url = raw;
-
-    // "/assets/..." 같은 루트경로면 "./assets/..."로 강제 보정
-    if (raw.startsWith("/assets/")) {
-      url = DEFAULT_MODEL_URL;
-      $("modelUrl").value = url;
-    } else {
-      // 상대경로면 현재 페이지 기준으로 절대 URL로 변환
-      try{
-        url = new URL(raw, location.href).toString();
-      }catch(_){}
-    }
-
-    loadFromUrl(url);
-  });
-
-  // File pick load
-  $("filePick").addEventListener("change", (e)=>{
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const url = URL.createObjectURL(f);
-    $("modelUrl").value = "(file) " + f.name;
-    loadFromUrl(url);
-  });
-
-  // ---------- Render loop ----------
+  // ---------- render loop ----------
   function resize(){
     const w = canvas.clientWidth, h = canvas.clientHeight;
     renderer.setSize(w, h, false);
@@ -690,16 +547,9 @@
   }
   loop();
 
-  // ---------- Boot ----------
-  restoreFromLocal();
+  // boot
   setPill("대기");
-  setStatus(
-    `<b>상태:</b> 준비 완료<br/>
-     <b>기본 아바타 URL:</b> <code>${DEFAULT_MODEL_URL}</code><br/>
-     상단의 <b>로드</b>를 누르거나 파일을 선택하세요.`
-  );
-
-  // 자동 로드 (기본 URL)
+  setStatus(`<b>상태:</b> 준비 완료<br/><b>기본 아바타 URL:</b> <code>${DEFAULT_MODEL_URL}</code><br/>상단의 <b>로드</b>를 누르세요.`);
   loadFromUrl(DEFAULT_MODEL_URL);
 </script>
 </body>
