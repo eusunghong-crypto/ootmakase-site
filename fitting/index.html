@@ -4,27 +4,31 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>옷마카세 | 아바타 생성/조절 데모</title>
+
+  <!-- ✅ 핵심: "three" / "three/addons/" 를 CDN으로 매핑 -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; background:#070a12; }
     #wrap { position: fixed; inset: 0; display: grid; grid-template-columns: minmax(300px, 360px) 1fr; }
 
-    #panel {
-      color:#e6e9f2;
-      padding:14px;
-      overflow:auto;
+    #panel{
+      color:#e6e9f2; padding:14px; overflow:auto;
       border-right: 1px solid rgba(255,255,255,0.08);
       background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
     }
+    #panel h2 { margin: 0 0 10px; font-size: 14px; }
+    #panel .hint { margin: 0 0 12px; font-size: 12px; color: rgba(230,233,242,0.75); line-height: 1.45; }
 
-    .top { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom: 10px; }
-    #panel h2 { margin: 0; font-size: 14px; letter-spacing: -0.2px; }
-    #panel .hint { margin: 8px 0 12px; font-size: 12px; color: rgba(230,233,242,0.78); line-height: 1.55; }
-
-    .section-title{ margin: 14px 0 8px; font-size: 12px; font-weight: 800; color: rgba(230,233,242,0.92); letter-spacing: -0.2px; }
-    .row { display:flex; gap:8px; align-items:center; }
-    .row > * { flex: 1; }
-
-    .field { display:grid; gap:6px; margin-bottom: 10px; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .field { display:grid; gap: 6px; }
     label { font-size: 12px; color: rgba(230,233,242,0.85); }
 
     input[type="text"], input[type="number"]{
@@ -37,58 +41,47 @@
     input:focus { border-color: rgba(255,255,255,0.25); }
 
     input[type="range"]{ width:100%; accent-color: #ffb020; }
+    .kv { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size: 12px; color: rgba(230,233,242,0.72); }
 
-    .kv { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size: 12px; color: rgba(230,233,242,0.75); margin-top: 6px; }
-
-    .actions { display:flex; gap:10px; margin-top: 10px; }
-    button {
+    .actions { display:flex; gap:10px; margin-top: 12px; }
+    button{
       flex:1; padding:10px 12px; border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(255,255,255,0.10);
       color:#e6e9f2; cursor:pointer; font-weight: 800;
     }
     button:hover { background: rgba(255,255,255,0.14); }
-    button.primary { border-color: rgba(255,176,32,0.25); background: rgba(255,176,32,0.12); }
-
-    .small { font-size: 11px; color: rgba(230,233,242,0.62); line-height: 1.5; margin-top: 10px; }
-
-    .pill {
-      display:inline-flex; align-items:center; gap:8px;
-      padding: 8px 10px; border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      font-size: 12px; color: rgba(230,233,242,0.85);
-      white-space: nowrap;
+    button.primary{
+      border-color: rgba(255,176,32,0.28);
+      background: rgba(255,176,32,0.12);
     }
 
     #view { position: relative; }
     canvas { display:block; width:100%; height:100%; }
-
-    .badge {
+    .badge{
       position:absolute; left: 12px; bottom: 12px;
       padding: 8px 10px; border-radius: 12px;
       background: rgba(0,0,0,0.55);
       border: 1px solid rgba(255,255,255,0.12);
       color: rgba(255,255,255,0.85);
       font-size: 12px;
-      backdrop-filter: blur(8px);
     }
-    .status {
+    .status{
       position:absolute; right: 12px; top: 12px;
       padding: 8px 10px; border-radius: 12px;
       background: rgba(0,0,0,0.50);
       border: 1px solid rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.88);
+      color: rgba(255,255,255,0.90);
       font-size: 12px;
-      backdrop-filter: blur(8px);
       max-width: min(560px, calc(100% - 24px));
       line-height: 1.45;
+      backdrop-filter: blur(8px);
     }
     .status b { color: #ffcf6a; }
     .status code{
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       font-size: 11px;
-      color: rgba(255,255,255,0.90);
+      color: rgba(255,255,255,0.92);
       background: rgba(255,255,255,0.08);
       padding: 2px 6px;
       border-radius: 8px;
@@ -101,34 +94,30 @@
     }
   </style>
 </head>
+
 <body>
 <div id="wrap">
   <div id="panel">
-    <div class="top">
-      <div>
-        <h2>아바타 불러오기 & 길이/비율 조절</h2>
-        <p class="hint">
-          GLB(스켈레톤 포함) 아바타를 불러온 뒤, 슬라이더로 키/팔/다리/몸통/어깨폭/골반폭을 조절합니다.<br/>
-          드래그: 회전 / 휠: 확대·축소
-        </p>
-      </div>
-      <div class="pill" id="pillState">대기</div>
-    </div>
+    <h2>아바타 불러오기 & 길이/비율 조절</h2>
+    <p class="hint">
+      GLB(스켈레톤 포함) 아바타를 불러온 뒤, 슬라이더로 키/팔/다리/몸통/어깨폭/골반폭을 조절합니다.<br/>
+      드래그: 회전 / 휠: 확대·축소
+    </p>
 
-    <div class="section-title">1) 아바타 로드</div>
     <div class="field">
-      <label>기본 경로 (이 페이지 기준 상대경로로 자동 계산)</label>
-      <div class="row">
-        <input id="modelUrl" type="text" value="" />
-        <button id="btnLoad" class="primary">로드</button>
-      </div>
-      <div class="kv">
-        <span>또는 파일 선택으로 즉시 로드</span>
-        <input id="filePick" type="file" accept=".glb,.gltf" style="max-width:180px;" />
-      </div>
+      <label>아바타 경로 (기본값: ./assets/avatar.glb)</label>
+      <input id="modelUrl" type="text" />
     </div>
 
-    <div class="section-title">2) 길이/비율 조절</div>
+    <div class="actions">
+      <button id="btnLoad" class="primary">로드</button>
+      <label style="flex:1; display:flex; gap:10px; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.14); border-radius:12px; background:rgba(255,255,255,0.06); cursor:pointer; padding:10px 12px;">
+        <span style="font-size:12px; font-weight:800; color:rgba(230,233,242,0.9);">파일 선택</span>
+        <input id="filePick" type="file" accept=".glb,.gltf" style="display:none;">
+      </label>
+    </div>
+
+    <div style="margin-top:14px; font-size:12px; font-weight:900; color:rgba(230,233,242,0.9);">길이/비율 조절</div>
 
     <div class="field">
       <label>전체 크기(Uniform Scale)</label>
@@ -170,16 +159,6 @@
       <button id="btnReset">리셋</button>
       <button id="btnSave">설정 저장</button>
     </div>
-
-    <div class="actions">
-      <button id="btnLoadCfg">설정 불러오기</button>
-      <input id="cfgPick" type="file" accept=".json" style="flex:1; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.06); color:#e6e9f2;" />
-    </div>
-
-    <div class="small">
-      주의: 아바타 파일마다 본(뼈) 이름이 다를 수 있습니다. 본 자동 탐지를 했지만,
-      탐지가 안 되면 우측 상단 상태창에 “어떤 본을 못 찾았다”가 표시됩니다.
-    </div>
   </div>
 
   <div id="view">
@@ -190,32 +169,25 @@
 </div>
 
 <script type="module">
-  // 중요: "three" 같은 bare specifier를 쓰면 GitHub Pages에서 바로 실패합니다.
-  // 아래처럼 CDN 절대 URL로만 import해야 합니다.
-  import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-  import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
-  import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+  import * as THREE from "three";
+  import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+  import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
   const $ = (id)=> document.getElementById(id);
+  const statusEl = $("status");
+  const setStatus = (html)=> statusEl.innerHTML = html;
 
-  // (핵심) fitting/ 기준 상대경로 → 절대 URL로 자동 계산
+  // ✅ 기본 아바타 경로: fitting/ 기준으로 ./assets/avatar.glb
   const DEFAULT_MODEL_URL = new URL("./assets/avatar.glb", location.href).toString();
   $("modelUrl").value = DEFAULT_MODEL_URL;
 
-  const statusEl = $("status");
-  const pillState = $("pillState");
-  const setStatus = (html)=> statusEl.innerHTML = html;
-  const setPill = (txt)=> pillState.textContent = txt;
-
   const sliderIds = ["S_all","S_torso","S_leg","S_arm","S_shoulderW","S_hipW"];
-  function syncSliderLabels(){
-    for (const id of sliderIds){
-      $(id+"_v").textContent = Number($(id).value).toFixed(2);
-    }
+  function syncLabels(){
+    for (const id of sliderIds) $(id+"_v").textContent = Number($(id).value).toFixed(2);
   }
-  syncSliderLabels();
+  syncLabels();
 
-  // ---------- three scene ----------
+  // --- THREE setup ---
   const canvas = $("c");
   const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -245,54 +217,46 @@
   ground.receiveShadow = true;
   scene.add(ground);
 
-  // ---------- avatar state ----------
+  // --- Avatar state ---
+  const loader = new GLTFLoader();
   let modelGroup = null;
-  let skinnedRoot = null;
   let skeleton = null;
   let bones = {};
+  const base = { groupScale: new THREE.Vector3(1,1,1), bonePos: new Map() };
 
-  const base = {
-    groupScale: new THREE.Vector3(1,1,1),
-    bonePos: new Map(),
-    boneScale: new Map(),
-  };
-
-  const normalizeName = (s)=> (s||"").toLowerCase().replaceAll(" ", "").replaceAll("_","").replaceAll("-","");
+  const normalizeName = (s)=> (s||"").toLowerCase().replaceAll(" ","").replaceAll("_","").replaceAll("-","");
   function findBoneByAliases(aliases){
     if (!skeleton) return null;
     const aliasSet = aliases.map(normalizeName);
-
     for (const b of skeleton.bones){
       const n = normalizeName(b.name);
       if (aliasSet.includes(n)) return b;
     }
     for (const b of skeleton.bones){
       const n = normalizeName(b.name);
-      for (const a of aliasSet){
-        if (n.includes(a)) return b;
-      }
+      for (const a of aliasSet) if (n.includes(a)) return b;
     }
     return null;
   }
 
-  function captureBaseTransforms(){
-    base.groupScale.copy(modelGroup.scale);
-    base.bonePos.clear();
-    base.boneScale.clear();
-    skeleton.bones.forEach(b=>{
-      base.bonePos.set(b.uuid, b.position.clone());
-      base.boneScale.set(b.uuid, b.scale.clone());
-    });
+  function findFirstSkinnedMesh(root){
+    let found = null;
+    root.traverse(o=>{ if (!found && o.isSkinnedMesh && o.skeleton) found = o; });
+    return found;
   }
 
-  function restoreBaseTransforms(){
+  function captureBase(){
+    base.groupScale.copy(modelGroup.scale);
+    base.bonePos.clear();
+    skeleton.bones.forEach(b=> base.bonePos.set(b.uuid, b.position.clone()));
+  }
+
+  function restoreBase(){
     if (!modelGroup || !skeleton) return;
     modelGroup.scale.copy(base.groupScale);
     skeleton.bones.forEach(b=>{
       const p = base.bonePos.get(b.uuid);
-      const s = base.boneScale.get(b.uuid);
       if (p) b.position.copy(p);
-      if (s) b.scale.copy(s);
     });
   }
 
@@ -311,55 +275,31 @@
 
   function mapBones(){
     bones = {};
-    bones.hips   = findBoneByAliases(["hips","pelvis","j_bip_c_hips","mixamorighips"]);
-    bones.spine  = findBoneByAliases(["spine","j_bip_c_spine","mixamorigspine"]);
-    bones.chest  = findBoneByAliases(["spine2","chest","upperchest","j_bip_c_chest","mixamorigspine2","mixamorigchest"]);
-    bones.neck   = findBoneByAliases(["neck","j_bip_c_neck","mixamorigneck"]);
-    bones.head   = findBoneByAliases(["head","j_bip_c_head","mixamorighead"]);
+    bones.hips   = findBoneByAliases(["hips","pelvis","mixamorighips"]);
+    bones.spine  = findBoneByAliases(["spine","mixamorigspine"]);
+    bones.chest  = findBoneByAliases(["spine2","chest","upperchest","mixamorigspine2","mixamorigchest"]);
 
-    bones.lUpperArm = findBoneByAliases(["leftupperarm","l_upperarm","j_bip_l_upperarm","mixamorigleftupperarm","mixamorigleftarm"]);
-    bones.lLowerArm = findBoneByAliases(["leftlowerarm","l_lowerarm","j_bip_l_lowerarm","mixamorigleftlowerarm","mixamorigleftforearm"]);
-    bones.lHand     = findBoneByAliases(["lefthand","l_hand","j_bip_l_hand","mixamoriglefthand"]);
+    bones.lUpperArm = findBoneByAliases(["leftupperarm","mixamorigleftupperarm","mixamorigleftarm"]);
+    bones.lLowerArm = findBoneByAliases(["leftlowerarm","mixamorigleftlowerarm","mixamorigleftforearm"]);
+    bones.lHand     = findBoneByAliases(["lefthand","mixamoriglefthand"]);
 
-    bones.rUpperArm = findBoneByAliases(["rightupperarm","r_upperarm","j_bip_r_upperarm","mixamorigrighupperarm","mixamorigrightupperarm","mixamorigrightarm"]);
-    bones.rLowerArm = findBoneByAliases(["rightlowerarm","r_lowerarm","j_bip_r_lowerarm","mixamorigrightlowerarm","mixamorigrightforearm"]);
-    bones.rHand     = findBoneByAliases(["righthand","r_hand","j_bip_r_hand","mixamorigrighthand"]);
+    bones.rUpperArm = findBoneByAliases(["rightupperarm","mixamorigrightupperarm","mixamorigrightarm"]);
+    bones.rLowerArm = findBoneByAliases(["rightlowerarm","mixamorigrightlowerarm","mixamorigrightforearm"]);
+    bones.rHand     = findBoneByAliases(["righthand","mixamorigrighthand"]);
 
-    bones.lUpperLeg = findBoneByAliases(["leftupperleg","l_upperleg","j_bip_l_upperleg","mixamorigleftupleg"]);
-    bones.lLowerLeg = findBoneByAliases(["leftlowerleg","l_lowerleg","j_bip_l_lowerleg","mixamorigleftleg"]);
-    bones.lFoot     = findBoneByAliases(["leftfoot","l_foot","j_bip_l_foot","mixamorigleftfoot"]);
+    bones.lUpperLeg = findBoneByAliases(["leftupperleg","mixamorigleftupleg"]);
+    bones.lLowerLeg = findBoneByAliases(["leftlowerleg","mixamorigleftleg"]);
+    bones.lFoot     = findBoneByAliases(["leftfoot","mixamorigleftfoot"]);
 
-    bones.rUpperLeg = findBoneByAliases(["rightupperleg","r_upperleg","j_bip_r_upperleg","mixamorigrightupleg"]);
-    bones.rLowerLeg = findBoneByAliases(["rightlowerleg","r_lowerleg","j_bip_r_lowerleg","mixamorigrightleg"]);
-    bones.rFoot     = findBoneByAliases(["rightfoot","r_foot","j_bip_r_foot","mixamorigrightfoot"]);
-
-    const must = [
-      ["hips","hips"], ["spine","spine"], ["chest","chest"],
-      ["lUpperArm","L upperArm"], ["lLowerArm","L lowerArm"],
-      ["rUpperArm","R upperArm"], ["rLowerArm","R lowerArm"],
-      ["lUpperLeg","L upperLeg"], ["lLowerLeg","L lowerLeg"],
-      ["rUpperLeg","R upperLeg"], ["rLowerLeg","R lowerLeg"],
-    ];
-    const missing = must.filter(([k])=> !bones[k]).map(([,label])=> label);
-
-    let msg = `<b>상태:</b> 아바타 로드 완료<br/>`;
-    msg += `<b>로드 경로:</b> <code>${$("modelUrl").value}</code><br/>`;
-    msg += `<b>스켈레톤:</b> ${skeleton?.bones?.length ?? 0} bones 탐지<br/>`;
-    if (missing.length){
-      msg += `<b>경고:</b> 일부 본 탐지 실패 → <span style="color:#ff8a8a;">${missing.join(", ")}</span><br/>`;
-      msg += `<span style="color:rgba(255,255,255,0.72)">본 이름이 특이한 모델이면 매핑을 조정해야 합니다.</span>`;
-      setPill("부분 동작");
-    } else {
-      msg += `<b>OK:</b> 주요 본 탐지 성공 (길이/폭 조절 가능)`;
-      setPill("정상");
-    }
-    setStatus(msg);
+    bones.rUpperLeg = findBoneByAliases(["rightupperleg","mixamorigrightupleg"]);
+    bones.rLowerLeg = findBoneByAliases(["rightlowerleg","mixamorigrightleg"]);
+    bones.rFoot     = findBoneByAliases(["rightfoot","mixamorigrightfoot"]);
   }
 
   function applyAdjust(){
     if (!modelGroup || !skeleton) return;
 
-    restoreBaseTransforms();
+    restoreBase();
 
     const sAll = Number($("S_all").value);
     const sTorso = Number($("S_torso").value);
@@ -372,8 +312,6 @@
 
     if (bones.spine && bones.chest) scaleChildOffset(bones.spine, bones.chest, sTorso);
     else if (bones.hips && bones.spine) scaleChildOffset(bones.hips, bones.spine, sTorso);
-    if (bones.chest && bones.neck) scaleChildOffset(bones.chest, bones.neck, sTorso);
-    if (bones.neck && bones.head)  scaleChildOffset(bones.neck, bones.head, sTorso);
 
     if (bones.lUpperLeg && bones.lLowerLeg) scaleChildOffset(bones.lUpperLeg, bones.lLowerLeg, sLeg);
     if (bones.lLowerLeg && bones.lFoot)     scaleChildOffset(bones.lLowerLeg, bones.lFoot, sLeg);
@@ -391,31 +329,13 @@
     if (bones.rUpperLeg) scaleBoneXOffset(bones.rUpperLeg, sHipW);
   }
 
-  // ---------- load model ----------
-  const loader = new GLTFLoader();
-
-  function clearCurrentModel(){
+  function clearModel(){
     if (!modelGroup) return;
     scene.remove(modelGroup);
-    modelGroup.traverse(o=>{
-      if (o.isMesh){
-        if (o.geometry) o.geometry.dispose();
-        if (Array.isArray(o.material)) o.material.forEach(m=> m.dispose && m.dispose());
-        else if (o.material) o.material.dispose && m.dispose();
-      }
-    });
     modelGroup = null;
-    skinnedRoot = null;
     skeleton = null;
     bones = {};
-  }
-
-  function findFirstSkinnedMesh(root){
-    let found = null;
-    root.traverse(o=>{
-      if (!found && o.isSkinnedMesh && o.skeleton) found = o;
-    });
-    return found;
+    base.bonePos.clear();
   }
 
   function setupShadows(root){
@@ -427,7 +347,7 @@
     });
   }
 
-  function frameCameraToModel(root){
+  function frameCamera(root){
     const box = new THREE.Box3().setFromObject(root);
     const size = new THREE.Vector3();
     const center = new THREE.Vector3();
@@ -444,10 +364,8 @@
 
   async function loadFromUrl(url){
     try{
-      setPill("로딩중");
       setStatus(`<b>상태:</b> 로딩중...<br/><b>요청 URL:</b> <code>${url}</code>`);
-
-      clearCurrentModel();
+      clearModel();
 
       const gltf = await loader.loadAsync(url);
       modelGroup = gltf.scene || gltf.scenes?.[0];
@@ -456,49 +374,42 @@
       setupShadows(modelGroup);
       scene.add(modelGroup);
 
-      skinnedRoot = findFirstSkinnedMesh(modelGroup);
-      if (!skinnedRoot || !skinnedRoot.skeleton){
-        setPill("주의");
+      const sk = findFirstSkinnedMesh(modelGroup);
+      if (!sk || !sk.skeleton){
+        frameCamera(modelGroup);
         setStatus(
           `<b>상태:</b> 모델 로드 완료<br/>
            <b>경고:</b> SkinnedMesh(스켈레톤)를 찾지 못했습니다.<br/>
-           이 기능은 “스켈레톤 포함 GLB”에서만 동작합니다.`
+           이 페이지의 “길이 조절”은 스켈레톤 포함 GLB에서만 동작합니다.`
         );
-        frameCameraToModel(modelGroup);
         return;
       }
 
-      skeleton = skinnedRoot.skeleton;
-      captureBaseTransforms();
+      skeleton = sk.skeleton;
+      captureBase();
       mapBones();
-      frameCameraToModel(modelGroup);
-
+      frameCamera(modelGroup);
       applyAdjust();
 
+      setStatus(
+        `<b>상태:</b> 아바타 로드 완료<br/>
+         <b>로드:</b> <code>${url}</code><br/>
+         <b>스켈레톤:</b> ${skeleton.bones.length} bones 탐지`
+      );
     }catch(err){
       console.error(err);
-      setPill("실패");
       setStatus(
         `<b>상태:</b> 로드 실패<br/>
          <span style="color:#ff8a8a">${String(err?.message || err)}</span><br/>
-         <span style="color:rgba(255,255,255,0.72)">경로가 <code>/assets/...</code>로 시작하면 실패합니다. <code>./assets/avatar.glb</code>를 사용하세요.</span>`
+         <span style="color:rgba(255,255,255,0.72)">경로는 <code>./assets/avatar.glb</code> 처럼 “현재 페이지 기준 상대경로”로 넣으세요.</span>`
       );
     }
   }
 
-  // ---------- events ----------
   $("btnLoad").addEventListener("click", ()=>{
     const raw = $("modelUrl").value.trim();
     if (!raw) return;
-
-    // "/assets/..." 같은 루트경로면 자동 교정
-    let url = raw;
-    if (raw.startsWith("/assets/")) {
-      url = DEFAULT_MODEL_URL;
-      $("modelUrl").value = url;
-    } else {
-      url = new URL(raw, location.href).toString();
-    }
+    const url = new URL(raw, location.href).toString();
     loadFromUrl(url);
   });
 
@@ -506,7 +417,7 @@
     const f = e.target.files?.[0];
     if (!f) return;
     const url = URL.createObjectURL(f);
-    $("modelUrl").value = "(file) " + f.name;
+    $("modelUrl").value = url;
     loadFromUrl(url);
   });
 
@@ -517,20 +428,24 @@
     $("S_arm").value = 1.00;
     $("S_shoulderW").value = 1.00;
     $("S_hipW").value = 1.00;
-    syncSliderLabels();
+    syncLabels();
     applyAdjust();
   });
 
-  let tick = null;
+  $("btnSave").addEventListener("click", ()=>{
+    const cfg = {};
+    for (const id of sliderIds) cfg[id] = Number($(id).value);
+    localStorage.setItem("ootmakase_avatar_cfg", JSON.stringify(cfg));
+    setStatus(`<b>상태:</b> 설정 저장 완료 (localStorage)`);
+  });
+
   for (const id of sliderIds){
     $(id).addEventListener("input", ()=>{
-      syncSliderLabels();
-      clearTimeout(tick);
-      tick = setTimeout(()=> applyAdjust(), 20);
+      syncLabels();
+      applyAdjust();
     });
   }
 
-  // ---------- render loop ----------
   function resize(){
     const w = canvas.clientWidth, h = canvas.clientHeight;
     renderer.setSize(w, h, false);
@@ -547,10 +462,21 @@
   }
   loop();
 
-  // boot
-  setPill("대기");
-  setStatus(`<b>상태:</b> 준비 완료<br/><b>기본 아바타 URL:</b> <code>${DEFAULT_MODEL_URL}</code><br/>상단의 <b>로드</b>를 누르세요.`);
+  // boot: 저장된 설정 있으면 복원
+  const saved = localStorage.getItem("ootmakase_avatar_cfg");
+  if (saved){
+    try{
+      const cfg = JSON.parse(saved);
+      for (const id of sliderIds){
+        if (cfg[id]) $(id).value = cfg[id];
+      }
+      syncLabels();
+    }catch{}
+  }
+
+  setStatus(`<b>상태:</b> 준비 완료<br/><b>기본 경로:</b> <code>${DEFAULT_MODEL_URL}</code>`);
   loadFromUrl(DEFAULT_MODEL_URL);
 </script>
+
 </body>
 </html>
