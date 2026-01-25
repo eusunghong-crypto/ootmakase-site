@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>옷마카세 | 아바타 생성/조절 데모</title>
 
+  <!-- ✅ 핵심: importmap으로 bare specifier "three" 해결 -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; background:#070a12; }
     #wrap { position: fixed; inset: 0; display: grid; grid-template-columns: minmax(300px, 360px) 1fr; }
@@ -158,16 +168,14 @@
 </div>
 
 <script type="module">
-  // ✅ importmap 없이 "URL 직접 import" (GitHub Pages에서 가장 안정적)
-  import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-  import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
-  import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+  import * as THREE from "three";
+  import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+  import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
   const $ = (id)=> document.getElementById(id);
   const statusEl = $("status");
   const setStatus = (html)=> statusEl.innerHTML = html;
 
-  // ✅ 기본 아바타 경로: fitting/ 기준으로 ./assets/avatar.glb
   const DEFAULT_MODEL_URL = new URL("./assets/avatar.glb", location.href).toString();
   $("modelUrl").value = DEFAULT_MODEL_URL;
 
@@ -207,24 +215,27 @@
   ground.receiveShadow = true;
   scene.add(ground);
 
-  // --- Avatar state ---
   const loader = new GLTFLoader();
+
   let modelGroup = null;
   let skeleton = null;
   let bones = {};
   const base = { groupScale: new THREE.Vector3(1,1,1), bonePos: new Map() };
 
   const normalizeName = (s)=> (s||"").toLowerCase().replaceAll(" ","").replaceAll("_","").replaceAll("-","");
+  function findFirstSkinnedMesh(root){
+    let found = null;
+    root.traverse(o=>{ if (!found && o.isSkinnedMesh && o.skeleton) found = o; });
+    return found;
+  }
   function findBoneByAliases(aliases){
     if (!skeleton) return null;
     const aliasSet = aliases.map(normalizeName);
 
-    // 1) exact match
     for (const b of skeleton.bones){
       const n = normalizeName(b.name);
       if (aliasSet.includes(n)) return b;
     }
-    // 2) contains match
     for (const b of skeleton.bones){
       const n = normalizeName(b.name);
       for (const a of aliasSet) if (n.includes(a)) return b;
@@ -232,18 +243,11 @@
     return null;
   }
 
-  function findFirstSkinnedMesh(root){
-    let found = null;
-    root.traverse(o=>{ if (!found && o.isSkinnedMesh && o.skeleton) found = o; });
-    return found;
-  }
-
   function captureBase(){
     base.groupScale.copy(modelGroup.scale);
     base.bonePos.clear();
     skeleton.bones.forEach(b=> base.bonePos.set(b.uuid, b.position.clone()));
   }
-
   function restoreBase(){
     if (!modelGroup || !skeleton) return;
     modelGroup.scale.copy(base.groupScale);
@@ -266,7 +270,6 @@
     bone.position.set(orig.x * factor, orig.y, orig.z);
   }
 
-  // ✅ 너 GLB(avatar.glb) 본 네이밍(hip, spine_01, upperarm_l, upperleg_l …) 대응
   function mapBones(){
     bones = {};
     bones.hips   = findBoneByAliases(["hips","hip","pelvis","root","mixamorighips"]);
@@ -320,20 +323,11 @@
     if (bones.rUpperArm && bones.rLowerArm) scaleChildOffset(bones.rUpperArm, bones.rLowerArm, sArm);
     if (bones.rLowerArm && bones.rHand)     scaleChildOffset(bones.rLowerArm, bones.rHand, sArm);
 
-    // widths (bone x offset)
+    // widths
     if (bones.lUpperArm) scaleBoneXOffset(bones.lUpperArm, sShoulderW);
     if (bones.rUpperArm) scaleBoneXOffset(bones.rUpperArm, sShoulderW);
     if (bones.lUpperLeg) scaleBoneXOffset(bones.lUpperLeg, sHipW);
     if (bones.rUpperLeg) scaleBoneXOffset(bones.rUpperLeg, sHipW);
-  }
-
-  function clearModel(){
-    if (!modelGroup) return;
-    scene.remove(modelGroup);
-    modelGroup = null;
-    skeleton = null;
-    bones = {};
-    base.bonePos.clear();
   }
 
   function setupShadows(root){
@@ -356,8 +350,17 @@
     const dist = maxDim * 1.8;
 
     camera.position.set(center.x + dist*0.65, center.y + dist*0.55, center.z + dist*0.85);
-    controls.target.copy(center.add(new THREE.Vector3(0, maxDim*0.15, 0)));
+    controls.target.copy(center.clone().add(new THREE.Vector3(0, maxDim*0.15, 0)));
     controls.update();
+  }
+
+  function clearModel(){
+    if (!modelGroup) return;
+    scene.remove(modelGroup);
+    modelGroup = null;
+    skeleton = null;
+    bones = {};
+    base.bonePos.clear();
   }
 
   async function loadFromUrl(url){
@@ -375,11 +378,7 @@
       const sk = findFirstSkinnedMesh(modelGroup);
       if (!sk || !sk.skeleton){
         frameCamera(modelGroup);
-        setStatus(
-          `<b>상태:</b> 모델 로드 완료<br/>
-           <b>경고:</b> SkinnedMesh(스켈레톤)를 찾지 못했습니다.<br/>
-           길이 조절은 스켈레톤 포함 GLB에서만 동작합니다.`
-        );
+        setStatus(`<b>상태:</b> 모델 로드 완료<br/><b>경고:</b> SkinnedMesh(스켈레톤)를 찾지 못했습니다.`);
         return;
       }
 
@@ -389,24 +388,15 @@
       frameCamera(modelGroup);
       applyAdjust();
 
-      setStatus(
-        `<b>상태:</b> 아바타 로드 완료<br/>
-         <b>로드:</b> <code>${url}</code><br/>
-         <b>스켈레톤:</b> ${skeleton.bones.length} bones 탐지`
-      );
+      setStatus(`<b>상태:</b> 아바타 로드 완료<br/><b>스켈레톤:</b> ${skeleton.bones.length} bones`);
     }catch(err){
       console.error(err);
-      setStatus(
-        `<b>상태:</b> 로드 실패<br/>
-         <span style="color:#ff8a8a">${String(err?.message || err)}</span><br/>
-         <span style="color:rgba(255,255,255,0.72)">경로는 <code>./assets/avatar.glb</code> 처럼 “현재 페이지 기준 상대경로”로 넣으세요.</span>`
-      );
+      setStatus(`<b>상태:</b> 로드 실패<br/><span style="color:#ff8a8a">${String(err?.message || err)}</span>`);
     }
   }
 
   $("btnLoad").addEventListener("click", ()=>{
     const raw = $("modelUrl").value.trim();
-    if (!raw) return;
     const url = new URL(raw, location.href).toString();
     loadFromUrl(url);
   });
@@ -460,7 +450,6 @@
   }
   loop();
 
-  // boot: 저장된 설정 있으면 복원
   const saved = localStorage.getItem("ootmakase_avatar_cfg");
   if (saved){
     try{
@@ -472,7 +461,6 @@
     }catch{}
   }
 
-  setStatus(`<b>상태:</b> 준비 완료<br/><b>기본 경로:</b> <code>${DEFAULT_MODEL_URL}</code>`);
   loadFromUrl(DEFAULT_MODEL_URL);
 </script>
 </body>
