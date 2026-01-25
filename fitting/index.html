@@ -120,9 +120,19 @@
       color: rgba(255,255,255,0.88);
       font-size: 12px;
       backdrop-filter: blur(8px);
-      max-width: min(520px, calc(100% - 24px));
+      max-width: min(560px, calc(100% - 24px));
+      line-height: 1.45;
     }
     .status b { color: #ffcf6a; }
+    .status code{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      color: rgba(255,255,255,0.90);
+      background: rgba(255,255,255,0.08);
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
 
     @media (max-width: 860px) {
       #wrap { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
@@ -146,9 +156,9 @@
 
     <div class="section-title">1) 아바타 로드</div>
     <div class="field">
-      <label>기본 경로 (프로젝트에 파일 넣고 경로만 맞추면 됨)</label>
+      <label>기본 경로 (이 페이지 기준으로 자동 계산된 상대경로를 사용합니다)</label>
       <div class="row">
-        <input id="modelUrl" type="text" value="./assets/avatar.glb" />
+        <input id="modelUrl" type="text" value="" />
         <button id="btnLoad" class="primary">로드</button>
       </div>
       <div class="kv">
@@ -214,7 +224,7 @@
 
   <div id="view">
     <div class="status" id="status">
-      <b>상태:</b> 아직 아바타가 로드되지 않았습니다.
+      <b>상태:</b> 초기화 중...
     </div>
     <div class="badge">Ootmakase | Avatar Adjust</div>
     <canvas id="c"></canvas>
@@ -226,8 +236,16 @@
   import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
   import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
 
+  // --------------------------
+  // 경로 자동 계산 (핵심 수정)
+  // - 절대경로(/assets/...)를 쓰면 GitHub Pages의 "루트"로 해석되어 실패할 수 있음
+  // - 이 페이지(fitting/) 기준 상대경로로 항상 맞게 만듦
+  // --------------------------
+  const DEFAULT_MODEL_URL = new URL("./assets/avatar.glb", location.href).toString();
+
   // ---------- Basic three ----------
-  const canvas = document.getElementById("c");
+  const $ = (id)=> document.getElementById(id);
+  const canvas = $("c");
   const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
@@ -257,16 +275,10 @@
   scene.add(ground);
 
   // ---------- UI helpers ----------
-  const $ = (id)=> document.getElementById(id);
   const statusEl = $("status");
   const pillState = $("pillState");
-
-  function setStatus(html){
-    statusEl.innerHTML = html;
-  }
-  function setPill(text){
-    pillState.textContent = text;
-  }
+  function setStatus(html){ statusEl.innerHTML = html; }
+  function setPill(text){ pillState.textContent = text; }
 
   const sliderIds = ["S_all","S_torso","S_leg","S_arm","S_shoulderW","S_hipW"];
   function syncSliderLabels(){
@@ -276,20 +288,22 @@
   }
   syncSliderLabels();
 
+  // 입력칸 기본값을 "자동 계산된 URL"로 고정
+  $("modelUrl").value = DEFAULT_MODEL_URL;
+
   // ---------- Avatar state ----------
-  let modelGroup = null;         // gltf.scene
-  let skinnedRoot = null;        // a SkinnedMesh (one of them)
-  let skeleton = null;           // skeleton from skinned mesh
-  let bones = {};                // mapped bones
-  let base = {                   // original transforms
+  let modelGroup = null;     // gltf.scene
+  let skinnedRoot = null;    // first SkinnedMesh
+  let skeleton = null;       // skeleton
+  let bones = {};            // mapped bones
+
+  const base = {
     groupScale: new THREE.Vector3(1,1,1),
-    bonePos: new Map(),          // bone.uuid -> Vector3 clone
-    boneScale: new Map(),        // bone.uuid -> Vector3 clone
+    bonePos: new Map(),
+    boneScale: new Map(),
   };
 
-  // try to find by multiple aliases
   const normalizeName = (s)=> (s||"").toLowerCase().replaceAll(" ", "").replaceAll("_","").replaceAll("-","");
-
   function findBoneByAliases(aliases){
     if (!skeleton) return null;
     const aliasSet = aliases.map(normalizeName);
@@ -297,7 +311,6 @@
       const n = normalizeName(b.name);
       if (aliasSet.includes(n)) return b;
     }
-    // partial match fallback
     for (const b of skeleton.bones){
       const n = normalizeName(b.name);
       for (const a of aliasSet){
@@ -328,15 +341,12 @@
     });
   }
 
-  // For "length" we scale the child offset vector (more stable than bone.scale for mixed rigs)
   function scaleChildOffset(parentBone, childBone, factor){
     if (!parentBone || !childBone) return;
     const orig = base.bonePos.get(childBone.uuid);
     if (!orig) return;
     childBone.position.copy(orig).multiplyScalar(factor);
   }
-
-  // Shoulder/hip width: scale X offset of left/right bones from base
   function scaleBoneXOffset(bone, factor){
     if (!bone) return;
     const orig = base.bonePos.get(bone.uuid);
@@ -344,14 +354,11 @@
     bone.position.set(orig.x * factor, orig.y, orig.z);
   }
 
-  // Map common rigs (Mixamo / VRM / RPM-ish)
   function mapBones(){
     bones = {};
-
     bones.hips   = findBoneByAliases(["hips", "mixamorighips", "j_bip_c_hips", "pelvis"]);
     bones.spine  = findBoneByAliases(["spine", "mixamorigspine", "j_bip_c_spine"]);
     bones.chest  = findBoneByAliases(["spine2","chest","upperchest","mixamorigspine2","mixamorigchest","j_bip_c_chest"]);
-
     bones.neck   = findBoneByAliases(["neck","mixamorigneck","j_bip_c_neck"]);
     bones.head   = findBoneByAliases(["head","mixamorighead","j_bip_c_head"]);
 
@@ -361,8 +368,7 @@
 
     bones.rUpperArm = findBoneByAliases(["rightupperarm","r_upperarm","mixamorigrightarm","mixamorigrightupperarm","j_bip_r_upperarm","rightarm"]);
     bones.rLowerArm = findBoneByAliases(["rightlowerarm","r_lowerarm","mixamorigrightforearm","mixamorigrightlowerarm","j_bip_r_lowerarm","rightforearm"]);
-    bones.rHand     = findBoneByAliases(["righthand","r_hand","mixamorig righthand","mixamorig righthand","mixamorig righthand","mixamorig righthand","mixamorig righthand"]); // harmless
-    if (!bones.rHand) bones.rHand = findBoneByAliases(["righthand","r_hand","mixamorigrighthand","j_bip_r_hand"]);
+    bones.rHand     = findBoneByAliases(["righthand","r_hand","mixamorigrighthand","j_bip_r_hand"]);
 
     bones.lUpperLeg = findBoneByAliases(["leftupperleg","l_upperleg","mixamorigleftupleg","j_bip_l_upperleg","leftthigh","upleg"]);
     bones.lLowerLeg = findBoneByAliases(["leftlowerleg","l_lowerleg","mixamorigleftleg","j_bip_l_lowerleg","leftshin","leg"]);
@@ -372,7 +378,6 @@
     bones.rLowerLeg = findBoneByAliases(["rightlowerleg","r_lowerleg","mixamorigrightleg","j_bip_r_lowerleg","rightshin"]);
     bones.rFoot     = findBoneByAliases(["rightfoot","r_foot","mixamorigrightfoot","j_bip_r_foot"]);
 
-    // Build missing report
     const must = [
       ["hips","hips"], ["spine","spine"], ["chest","chest"],
       ["lUpperArm","L upperArm"], ["lLowerArm","L lowerArm"],
@@ -380,14 +385,14 @@
       ["lUpperLeg","L upperLeg"], ["lLowerLeg","L lowerLeg"],
       ["rUpperLeg","R upperLeg"], ["rLowerLeg","R lowerLeg"],
     ];
-
     const missing = must.filter(([k])=> !bones[k]).map(([,label])=> label);
 
     let msg = `<b>상태:</b> 아바타 로드 완료<br/>`;
+    msg += `<b>로드 경로:</b> <code>${$("modelUrl").value}</code><br/>`;
     msg += `<b>스켈레톤:</b> ${skeleton.bones.length} bones 탐지<br/>`;
     if (missing.length){
       msg += `<b>경고:</b> 일부 본 탐지 실패 → <span style="color:#ff8a8a;">${missing.join(", ")}</span><br/>`;
-      msg += `<span style="color:rgba(255,255,255,0.72)">본 이름이 특이한 모델이면, 파일을 바꿔보거나(또는 본 이름 규칙을 알려주면) 매핑을 맞춰줄 수 있습니다.</span>`;
+      msg += `<span style="color:rgba(255,255,255,0.72)">본 이름이 특이한 모델이면 본 이름 규칙에 맞춰 매핑을 조정해야 합니다.</span>`;
       setPill("부분 동작");
     } else {
       msg += `<b>OK:</b> 주요 본 탐지 성공 (길이/폭 조절 가능)`;
@@ -399,7 +404,6 @@
   function applyAdjust(){
     if (!modelGroup || !skeleton) return;
 
-    // Restore to base first (idempotent)
     restoreBaseTransforms();
 
     const sAll = Number($("S_all").value);
@@ -409,44 +413,30 @@
     const sShoulderW = Number($("S_shoulderW").value);
     const sHipW = Number($("S_hipW").value);
 
-    // 1) overall scale (uniform)
     modelGroup.scale.set(sAll, sAll, sAll);
 
-    // 2) torso length: scale offsets along spine chain if available
-    //    We scale chest offset from spine, and neck/head offsets from chest
-    if (bones.spine && bones.chest){
-      scaleChildOffset(bones.spine, bones.chest, sTorso);
-    } else if (bones.hips && bones.spine){
-      scaleChildOffset(bones.hips, bones.spine, sTorso);
-    }
-    if (bones.chest && bones.neck){
-      scaleChildOffset(bones.chest, bones.neck, sTorso);
-    }
-    if (bones.neck && bones.head){
-      scaleChildOffset(bones.neck, bones.head, sTorso);
-    }
+    if (bones.spine && bones.chest) scaleChildOffset(bones.spine, bones.chest, sTorso);
+    else if (bones.hips && bones.spine) scaleChildOffset(bones.hips, bones.spine, sTorso);
 
-    // 3) leg length: upperleg->lowerleg and lowerleg->foot
+    if (bones.chest && bones.neck) scaleChildOffset(bones.chest, bones.neck, sTorso);
+    if (bones.neck && bones.head) scaleChildOffset(bones.neck, bones.head, sTorso);
+
     if (bones.lUpperLeg && bones.lLowerLeg) scaleChildOffset(bones.lUpperLeg, bones.lLowerLeg, sLeg);
     if (bones.lLowerLeg && bones.lFoot)     scaleChildOffset(bones.lLowerLeg, bones.lFoot, sLeg);
     if (bones.rUpperLeg && bones.rLowerLeg) scaleChildOffset(bones.rUpperLeg, bones.rLowerLeg, sLeg);
     if (bones.rLowerLeg && bones.rFoot)     scaleChildOffset(bones.rLowerLeg, bones.rFoot, sLeg);
 
-    // 4) arm length: upperarm->lowerarm and lowerarm->hand
     if (bones.lUpperArm && bones.lLowerArm) scaleChildOffset(bones.lUpperArm, bones.lLowerArm, sArm);
     if (bones.lLowerArm && bones.lHand)     scaleChildOffset(bones.lLowerArm, bones.lHand, sArm);
     if (bones.rUpperArm && bones.rLowerArm) scaleChildOffset(bones.rUpperArm, bones.rLowerArm, sArm);
     if (bones.rLowerArm && bones.rHand)     scaleChildOffset(bones.rLowerArm, bones.rHand, sArm);
 
-    // 5) shoulder width: scale x-offset of upperarms (from base)
     if (bones.lUpperArm) scaleBoneXOffset(bones.lUpperArm, sShoulderW);
     if (bones.rUpperArm) scaleBoneXOffset(bones.rUpperArm, sShoulderW);
 
-    // 6) hip width: scale x-offset of upperlegs (from base)
     if (bones.lUpperLeg) scaleBoneXOffset(bones.lUpperLeg, sHipW);
     if (bones.rUpperLeg) scaleBoneXOffset(bones.rUpperLeg, sHipW);
 
-    // Recenter camera target toward torso
     const hips = bones.hips;
     if (hips){
       const hipsWorld = new THREE.Vector3();
@@ -460,7 +450,6 @@
 
   function clearCurrentModel(){
     if (!modelGroup) return;
-
     scene.remove(modelGroup);
     modelGroup.traverse(o=>{
       if (o.isMesh){
@@ -469,13 +458,10 @@
         else if (o.material) o.material.dispose && o.material.dispose();
       }
     });
-
     modelGroup = null;
     skinnedRoot = null;
     skeleton = null;
     bones = {};
-    setPill("대기");
-    setStatus(`<b>상태:</b> 모델 제거됨`);
   }
 
   function findFirstSkinnedMesh(root){
@@ -496,7 +482,6 @@
   }
 
   function frameCameraToModel(root){
-    // bbox
     const box = new THREE.Box3().setFromObject(root);
     const size = new THREE.Vector3();
     const center = new THREE.Vector3();
@@ -511,10 +496,24 @@
     controls.update();
   }
 
+  function guessHelpfulError(url){
+    // GitHub Pages에서 가장 흔한 실수: /assets/... 절대경로
+    try{
+      const u = new URL(url, location.href);
+      if (u.pathname.startsWith("/assets/")){
+        return `경로가 <code>/assets/...</code>로 시작합니다. 이건 "도메인 루트" 기준이라 GitHub Pages에서 404가 날 수 있어요.<br/>
+                지금 페이지 기준으로 <code>./assets/avatar.glb</code> 또는 자동 계산된 URL(<code>${DEFAULT_MODEL_URL}</code>)을 사용하세요.`;
+      }
+    }catch(_){}
+    return `브라우저에서 직접 열어보세요: <code>${DEFAULT_MODEL_URL}</code><br/>
+            이 주소가 404면, 파일 커밋/푸시 또는 Pages 배포가 반영되지 않은 것입니다.`;
+  }
+
   async function loadFromUrl(url){
     try{
       setPill("로딩중");
-      setStatus(`<b>상태:</b> 로딩중...<br/><span style="color:rgba(255,255,255,0.75)">URL: ${url}</span>`);
+      setStatus(`<b>상태:</b> 로딩중...<br/><b>요청 URL:</b> <code>${url}</code>`);
+
       clearCurrentModel();
 
       const gltf = await loader.loadAsync(url);
@@ -528,7 +527,12 @@
       skinnedRoot = findFirstSkinnedMesh(modelGroup);
       if (!skinnedRoot || !skinnedRoot.skeleton){
         setPill("주의");
-        setStatus(`<b>상태:</b> 모델 로드 완료<br/><b>경고:</b> SkinnedMesh(스켈레톤)를 찾지 못했습니다.<br/>이 기능은 “스켈레톤 포함 GLB”에서만 동작합니다.`);
+        setStatus(
+          `<b>상태:</b> 모델 로드 완료<br/>
+           <b>경고:</b> SkinnedMesh(스켈레톤)를 찾지 못했습니다.<br/>
+           이 기능은 “스켈레톤 포함 GLB”에서만 동작합니다.<br/>
+           <span style="color:rgba(255,255,255,0.72)">해결: 스켈레톤이 포함된 아바타(GLB/VRM/Mixamo rig 등)로 교체하세요.</span>`
+        );
         frameCameraToModel(modelGroup);
         return;
       }
@@ -540,30 +544,18 @@
 
       // apply current sliders
       applyAdjust();
-
-      // autosave sliders
       persistToLocal();
+
     }catch(err){
       console.error(err);
       setPill("실패");
-      setStatus(`<b>상태:</b> 로드 실패<br/><span style="color:#ff8a8a">${String(err.message || err)}</span>`);
+      setStatus(
+        `<b>상태:</b> 로드 실패<br/>
+         <span style="color:#ff8a8a">${String(err?.message || err)}</span><br/><br/>
+         <b>체크:</b><br/>${guessHelpfulError($("modelUrl").value)}`
+      );
     }
   }
-
-  // File pick load
-  $("filePick").addEventListener("change", (e)=>{
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const url = URL.createObjectURL(f);
-    $("modelUrl").value = "(file) " + f.name;
-    loadFromUrl(url);
-  });
-
-  $("btnLoad").addEventListener("click", ()=>{
-    const url = $("modelUrl").value.trim();
-    if (!url) return;
-    loadFromUrl(url);
-  });
 
   // ---------- Save/Load config ----------
   function readConfig(){
@@ -620,7 +612,7 @@
       try{
         const cfg = JSON.parse(reader.result);
         applyConfig(cfg);
-      }catch(e){
+      }catch(_){
         alert("JSON 형식이 올바르지 않습니다.");
       }
     };
@@ -649,6 +641,38 @@
     });
   }
 
+  // Buttons
+  $("btnLoad").addEventListener("click", ()=>{
+    // 사용자가 잘못해서 "/assets/..." 같은 걸 넣어도, 페이지 기준으로 한 번 더 보정해서 시도
+    // 단, http(s) 절대 URL이면 그대로 사용
+    const raw = $("modelUrl").value.trim();
+    if (!raw) return;
+
+    let url = raw;
+
+    // "/assets/..." 같은 루트경로면 "./assets/..."로 강제 보정
+    if (raw.startsWith("/assets/")) {
+      url = DEFAULT_MODEL_URL;
+      $("modelUrl").value = url;
+    } else {
+      // 상대경로면 현재 페이지 기준으로 절대 URL로 변환
+      try{
+        url = new URL(raw, location.href).toString();
+      }catch(_){}
+    }
+
+    loadFromUrl(url);
+  });
+
+  // File pick load
+  $("filePick").addEventListener("change", (e)=>{
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const url = URL.createObjectURL(f);
+    $("modelUrl").value = "(file) " + f.name;
+    loadFromUrl(url);
+  });
+
   // ---------- Render loop ----------
   function resize(){
     const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -667,8 +691,16 @@
   loop();
 
   // ---------- Boot ----------
-  restoreFromLocal();          // slider config restore
-  loadFromUrl($("modelUrl").value.trim());   // auto load default
+  restoreFromLocal();
+  setPill("대기");
+  setStatus(
+    `<b>상태:</b> 준비 완료<br/>
+     <b>기본 아바타 URL:</b> <code>${DEFAULT_MODEL_URL}</code><br/>
+     상단의 <b>로드</b>를 누르거나 파일을 선택하세요.`
+  );
+
+  // 자동 로드 (기본 URL)
+  loadFromUrl(DEFAULT_MODEL_URL);
 </script>
 </body>
 </html>
