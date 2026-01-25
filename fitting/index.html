@@ -2,528 +2,980 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>옷마카세 | 아바타 생성/조절 데모</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>옷마카세 | 아바타 생성 체험</title>
 
-  <!-- importmap: "three" bare specifier 해결 -->
+  <!-- ✅ GitHub Pages에서 bare specifier("three") 에러 방지 -->
   <script type="importmap">
   {
     "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/"
     }
   }
   </script>
 
   <style>
-    html, body { margin: 0; height: 100%; overflow: hidden; background:#070a12; }
-    #wrap { position: fixed; inset: 0; display: grid; grid-template-columns: minmax(300px, 360px) 1fr; }
-
-    #panel{
-      color:#e6e9f2; padding:14px; overflow:auto;
-      border-right: 1px solid rgba(255,255,255,0.08);
-      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    :root{
+      --bg:#eef1f6;
+      --panel:#ffffffcc;
+      --panelSolid:#fff;
+      --line:rgba(0,0,0,.08);
+      --muted:#6b7280;
+      --text:#0b0b0c;
+      --blue:#4f6ef7;
+      --shadow: 0 14px 34px rgba(0,0,0,.10);
+      --shadow2: 0 10px 22px rgba(0,0,0,.08);
+      --r:20px;
+      --sat: env(safe-area-inset-top);
+      --sar: env(safe-area-inset-right);
+      --sab: env(safe-area-inset-bottom);
+      --sal: env(safe-area-inset-left);
+      --vh: 1vh;
     }
-    #panel h2 { margin: 0 0 10px; font-size: 14px; }
-    #panel .hint { margin: 0 0 12px; font-size: 12px; color: rgba(230,233,242,0.75); line-height: 1.45; }
-
-    .field { display:grid; gap: 6px; margin-bottom: 10px; }
-    label { font-size: 12px; color: rgba(230,233,242,0.85); }
-
-    input[type="text"]{
-      width: 100%; box-sizing: border-box;
-      padding: 10px; border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.06);
-      color:#e6e9f2; outline:none;
+    *{ box-sizing:border-box }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",Arial,"Apple SD Gothic Neo",sans-serif;
+      color:var(--text);
+      background:linear-gradient(180deg,#f6f8fb 0%, #eef1f6 45%, #e9edf4 100%);
+      padding: var(--sat) var(--sar) var(--sab) var(--sal);
+      overflow:hidden;
     }
-    input[type="text"]:focus { border-color: rgba(255,255,255,0.25); }
+    button,input{ font-family:inherit; }
+    input{ font-size:16px; } /* iOS 줌 방지 */
+    @media (min-width: 641px){ input{ font-size:13px; } }
 
-    input[type="range"]{ width:100%; accent-color: #ffb020; }
-    .kv { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size: 12px; color: rgba(230,233,242,0.72); }
+    /* Top bar (가짜 쇼핑몰 느낌) */
+    header{
+      position:sticky; top:0; z-index:50;
+      background:rgba(255,255,255,.70);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+    }
+    .topbar{
+      max-width: 1400px;
+      margin:0 auto;
+      padding:12px 14px;
+      display:flex; align-items:center; gap:12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:1000;
+      letter-spacing:-.2px;
+      white-space:nowrap;
+    }
+    .brand .dot{
+      width:10px; height:10px; border-radius:999px;
+      background:#111;
+      box-shadow:0 6px 14px rgba(0,0,0,.18);
+    }
+    .search{
+      flex:1;
+      display:flex; align-items:center; gap:10px;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:10px 14px;
+      min-height:40px;
+      box-shadow:0 8px 18px rgba(0,0,0,.06);
+      min-width:120px;
+    }
+    .search span{ font-size:12px; color:var(--muted); white-space:nowrap; }
+    .search input{
+      border:0; outline:0; width:100%;
+      background:transparent;
+      min-width:0;
+      font-size:12px;
+    }
+    .topActions{ display:flex; align-items:center; gap:8px; }
+    .chip{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:999px;
+      padding:9px 12px;
+      font-size:12px;
+      font-weight:900;
+      cursor:pointer;
+      min-height:38px;
+      box-shadow:0 8px 18px rgba(0,0,0,.05);
+    }
+    .chip.primary{
+      background:rgba(79,110,247,.12);
+      border-color: rgba(79,110,247,.22);
+      color:#123;
+    }
 
-    .actions { display:flex; gap:10px; margin-top: 10px; }
-    button{
-      flex:1; padding:10px 12px; border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.10);
-      color:#e6e9f2; cursor:pointer; font-weight: 800;
+    /* Main layout */
+    .studioWrap{
+      max-width: 1400px;
+      margin:0 auto;
+      padding:14px;
+      height: calc((var(--vh) * 100) - 72px);
     }
-    button:hover { background: rgba(255,255,255,0.14); }
-    button.primary{
-      border-color: rgba(255,176,32,0.28);
-      background: rgba(255,176,32,0.12);
+    .studio{
+      height:100%;
+      display:grid;
+      grid-template-columns: 96px 1fr 360px;
+      gap:14px;
+      min-height:0;
     }
 
-    #view { position: relative; }
-    canvas { display:block; width:100%; height:100%; }
-    .badge{
-      position:absolute; left: 12px; bottom: 12px;
-      padding: 8px 10px; border-radius: 12px;
-      background: rgba(0,0,0,0.55);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.85);
-      font-size: 12px;
+    /* Left thumbs */
+    .side{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius: var(--r);
+      padding:10px;
+      box-shadow:var(--shadow2);
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
     }
-    .status{
-      position:absolute; right: 12px; top: 12px;
-      padding: 8px 10px; border-radius: 12px;
-      background: rgba(0,0,0,0.50);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.90);
-      font-size: 12px;
-      max-width: min(560px, calc(100% - 24px));
-      line-height: 1.45;
+    .thumb{
+      width:100%;
+      aspect-ratio:1/1;
+      border-radius:16px;
+      border:1px solid rgba(0,0,0,.10);
+      background:#fff;
+      overflow:hidden;
+      cursor:pointer;
+      position:relative;
+      display:flex; align-items:center; justify-content:center;
+      user-select:none;
+    }
+    .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .thumb.active{
+      outline:3px solid rgba(79,110,247,.55);
+      border-color: rgba(79,110,247,.35);
+    }
+    .thumb .tag{
+      position:absolute; left:7px; bottom:7px;
+      font-size:10px; font-weight:1000;
+      padding:5px 8px;
+      border-radius:999px;
+      background:rgba(255,255,255,.86);
+      border:1px solid rgba(0,0,0,.08);
+      color:#111;
+    }
+
+    /* Center stage */
+    .stage{
+      min-height:0;
+      border-radius: 24px;
+      overflow:hidden;
+      border:1px solid rgba(0,0,0,.07);
+      box-shadow: var(--shadow);
+      background: radial-gradient(circle at 50% 35%, #ffffff 0%, #f1f3f6 55%, #edf1f6 100%);
+      display:flex;
+      flex-direction:column;
+    }
+    .canvasWrap{ flex:1; min-height:0; position:relative; }
+    canvas{ width:100%; height:100%; display:block; }
+
+    .floatBtn{
+      position:absolute;
+      left:14px; bottom:14px;
+      width:44px; height:44px;
+      border-radius:16px;
+      border:1px solid rgba(0,0,0,.10);
+      background:rgba(255,255,255,.85);
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+      font-weight:1000;
+      box-shadow:0 10px 18px rgba(0,0,0,.10);
+      user-select:none;
+    }
+    .statusPill{
+      position:absolute;
+      right:14px; top:14px;
+      padding:10px 12px;
+      border-radius:14px;
+      background:rgba(0,0,0,.55);
+      color:#fff;
+      border:1px solid rgba(255,255,255,.12);
+      font-size:12px;
+      white-space:pre-line;
+      max-width:min(520px, calc(100% - 28px));
       backdrop-filter: blur(8px);
-      white-space: pre-line;
     }
-    .status b { color: #ffcf6a; }
-    .status code{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 11px;
-      color: rgba(255,255,255,0.92);
-      background: rgba(255,255,255,0.08);
-      padding: 2px 6px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.10);
+    .statusPill b{ color:#ffcf6a; }
+
+    /* Bottom tray */
+    .tray{
+      height:88px;
+      padding:10px 12px;
+      border-top:1px solid rgba(0,0,0,.07);
+      background:rgba(255,255,255,.62);
+      display:flex;
+      gap:10px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      align-items:center;
+    }
+    .trayItem{
+      width:62px; height:62px;
+      border-radius:16px;
+      border:1px solid rgba(0,0,0,.10);
+      background:#fff;
+      overflow:hidden;
+      cursor:pointer;
+      flex:0 0 auto;
+      display:flex; align-items:center; justify-content:center;
+      user-select:none;
+    }
+    .trayItem img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .trayItem.active{
+      outline:3px solid rgba(79,110,247,.55);
+      border-color: rgba(79,110,247,.35);
     }
 
-    @media (max-width: 860px) {
-      #wrap { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-      #panel { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    /* Right panel */
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius: var(--r);
+      padding:12px;
+      box-shadow:var(--shadow2);
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .card{
+      background:#fff;
+      border:1px solid rgba(0,0,0,.08);
+      border-radius:16px;
+      padding:12px;
+      box-shadow:0 8px 18px rgba(0,0,0,.06);
+    }
+    .row{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .row b{ font-size:13px; letter-spacing:-.1px; }
+    .row span{ font-size:12px; color:var(--muted); font-variant-numeric: tabular-nums; }
+    input[type="range"]{ width:100%; accent-color: var(--blue); }
+
+    .btnRow{
+      display:flex;
+      gap:10px;
+      margin-top:4px;
+      flex-wrap:wrap;
+    }
+    .btnBlue{
+      border:0;
+      background:var(--blue);
+      color:#fff;
+      padding:12px 14px;
+      border-radius:14px;
+      font-weight:1000;
+      cursor:pointer;
+      box-shadow:0 12px 22px rgba(79,110,247,.22);
+      min-height:42px;
+      flex:1;
+    }
+    .btnWhite{
+      border:1px solid rgba(0,0,0,.10);
+      background:#fff;
+      color:#111;
+      padding:12px 14px;
+      border-radius:14px;
+      font-weight:1000;
+      cursor:pointer;
+      min-height:42px;
+      flex:1;
+    }
+
+    details summary{
+      cursor:pointer;
+      font-weight:1000;
+      font-size:13px;
+      list-style:none;
+    }
+    details summary::-webkit-details-marker{ display:none; }
+    .mini{
+      margin-top:10px;
+      display:grid;
+      gap:10px;
+    }
+    .mini label{
+      font-size:12px;
+      font-weight:1000;
+      display:block;
+      margin-bottom:6px;
+    }
+    .mini input[type="file"], .mini input[type="text"]{
+      width:100%;
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:12px;
+      padding:10px;
+      background:#fff;
+      font-size:12px;
+      min-height:44px;
+    }
+    .checkRow{
+      display:flex; align-items:center; gap:8px;
+      font-size:12px; font-weight:1000; color:#111;
+    }
+    .hint{
+      font-size:12px; color:var(--muted); line-height:1.45;
+    }
+
+    /* Responsive */
+    @media (max-width: 980px){
+      .studio{ grid-template-columns: 82px 1fr; }
+      .panel{ display:none; }
+    }
+    @media (max-width: 640px){
+      .topActions{ display:none; }
+      .studioWrap{ padding:10px; }
+      .studio{ grid-template-columns: 70px 1fr; gap:10px; }
+      .tray{ height:78px; padding:8px 10px; }
+      .stage{ border-radius: 20px; }
+      .side{ border-radius: 18px; }
     }
   </style>
 </head>
 
 <body>
-<div id="wrap">
-  <div id="panel">
-    <h2>아바타 불러오기 & 길이/비율 조절</h2>
-    <p class="hint">
-      GLB(스켈레톤 포함) 아바타를 불러온 뒤, 슬라이더로 키/팔/다리/몸통/어깨폭/골반폭을 조절합니다.<br/>
-      드래그: 회전 / 휠: 확대·축소
-    </p>
-
-    <div class="field">
-      <label>아바타 경로 (기본값: ./assets/avatar.glb)</label>
-      <input id="modelUrl" type="text" />
+<header>
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span><span>옷마카세</span></div>
+    <div class="search">
+      <span>Search</span>
+      <input placeholder="브랜드, 상품명을 검색하세요 (데모)" />
     </div>
-
-    <div class="actions">
-      <button id="btnLoad" class="primary">로드</button>
-      <label style="flex:1; display:flex; gap:10px; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.14); border-radius:12px; background:rgba(255,255,255,0.06); cursor:pointer; padding:10px 12px;">
-        <span style="font-size:12px; font-weight:800; color:rgba(230,233,242,0.9);">파일 선택</span>
-        <input id="filePick" type="file" accept=".glb,.gltf" style="display:none;">
-      </label>
-    </div>
-
-    <div style="margin-top:14px; font-size:12px; font-weight:900; color:rgba(230,233,242,0.9);">길이/비율 조절</div>
-
-    <div class="field">
-      <label>전체 크기(Uniform Scale)</label>
-      <input id="S_all" type="range" min="0.80" max="1.20" step="0.01" value="1.00" />
-      <div class="kv"><span>값</span><span id="S_all_v">1.00</span></div>
-    </div>
-
-    <div class="field">
-      <label>몸통 길이(Spine 계열)</label>
-      <input id="S_torso" type="range" min="0.85" max="1.20" step="0.01" value="1.00" />
-      <div class="kv"><span>값</span><span id="S_torso_v">1.00</span></div>
-    </div>
-
-    <div class="field">
-      <label>다리 길이(UpperLeg/LowerLeg)</label>
-      <input id="S_leg" type="range" min="0.85" max="1.25" step="0.01" value="1.00" />
-      <div class="kv"><span>값</span><span id="S_leg_v">1.00</span></div>
-    </div>
-
-    <div class="field">
-      <label>팔 길이(UpperArm/LowerArm)</label>
-      <input id="S_arm" type="range" min="0.85" max="1.25" step="0.01" value="1.00" />
-      <div class="kv"><span>값</span><span id="S_arm_v">1.00</span></div>
-    </div>
-
-    <div class="field">
-      <label>어깨 폭(좌/우 UpperArm 위치)</label>
-      <input id="S_shoulderW" type="range" min="0.85" max="1.25" step="0.01" value="1.00" />
-      <div class="kv"><span>값</span><span id="S_shoulderW_v">1.00</span></div>
-    </div>
-
-    <div class="field">
-      <label>골반 폭(좌/우 UpperLeg 위치)</label>
-      <input id="S_hipW" type="range" min="0.85" max="1.25" step="0.01" value="1.00" />
-      <div class="kv"><span>값</span><span id="S_hipW_v">1.00</span></div>
-    </div>
-
-    <div class="actions">
-      <button id="btnReset">리셋</button>
-      <button id="btnSave">설정 저장</button>
+    <div class="topActions">
+      <button class="chip">로그인</button>
+      <button class="chip">찜</button>
+      <button class="chip primary" id="wearBtnTop">선택 의상 입혀보기</button>
     </div>
   </div>
+</header>
 
-  <div id="view">
-    <div class="status" id="status"><b>상태:</b> 초기화 중...</div>
-    <div class="badge">Ootmakase | Avatar Adjust</div>
-    <canvas id="c"></canvas>
+<div class="studioWrap">
+  <div class="studio">
+
+    <!-- LEFT -->
+    <aside class="side" id="side"></aside>
+
+    <!-- CENTER -->
+    <main class="stage">
+      <div class="canvasWrap">
+        <div class="statusPill" id="status"><b>상태:</b> 초기화 중...</div>
+        <canvas id="c"></canvas>
+        <div class="floatBtn" id="snapBtn" title="캡처">📷</div>
+      </div>
+      <div class="tray" id="tray"></div>
+    </main>
+
+    <!-- RIGHT -->
+    <aside class="panel">
+      <div class="card">
+        <div class="row"><b>X Offset</b><span id="xv">0.00</span></div>
+        <input id="x" type="range" min="-0.80" max="0.80" step="0.01" value="0.00">
+      </div>
+      <div class="card">
+        <div class="row"><b>Y Offset</b><span id="yv">0.35</span></div>
+        <input id="y" type="range" min="-0.30" max="5.00" step="0.01" value="0.35">
+      </div>
+      <div class="card">
+        <div class="row"><b>Z Offset</b><span id="zv">0.00</span></div>
+        <input id="z" type="range" min="-0.80" max="0.80" step="0.01" value="0.00">
+      </div>
+      <div class="card">
+        <div class="row"><b>Scale</b><span id="sv">1.10</span></div>
+        <input id="s" type="range" min="0.30" max="2.50" step="0.01" value="1.10">
+      </div>
+      <div class="card">
+        <div class="row"><b>Rotation (Avatar)</b><span id="rv">0°</span></div>
+        <input id="r" type="range" min="-180" max="180" step="1" value="0">
+      </div>
+
+      <div class="btnRow">
+        <button class="btnBlue" id="autoFitBtn">Auto Fit</button>
+        <button class="btnWhite" id="resetBtn">Reset</button>
+      </div>
+
+      <div class="card">
+        <details>
+          <summary>고급(아바타/의상 파일 업로드)</summary>
+          <div class="mini">
+            <div>
+              <label>아바타 교체(GLB)</label>
+              <input type="file" id="avatarFile" accept=".glb,.gltf" />
+              <div class="hint">기본: <code>./assets/avatar.glb</code></div>
+            </div>
+
+            <div>
+              <label>의상 이미지 업로드(front PNG 권장)</label>
+              <input type="file" id="frontFile" accept="image/png,image/webp,image/jpeg" />
+            </div>
+            <div>
+              <label>의상 이미지 업로드(back, 선택)</label>
+              <input type="file" id="backFile" accept="image/png,image/webp,image/jpeg" />
+            </div>
+
+            <div class="btnRow">
+              <button class="btnWhite" id="applyBtn">업로드 적용</button>
+              <button class="btnWhite" id="clearBtn">Clear</button>
+            </div>
+
+            <label class="checkRow">
+              <input type="checkbox" id="occlusionChk">
+              자연스러운 가림(DepthTest)
+            </label>
+
+            <div class="hint">
+              로컬 프리셋 파일 규칙(자동 표시용):<br/>
+              <code>./garments/{id}_front.png</code>, <code>./garments/{id}_back.png</code>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:1000; font-size:13px; margin-bottom:8px;">선택 의상</div>
+        <div class="hint" id="selInfo">-</div>
+        <div class="btnRow" style="margin-top:10px;">
+          <button class="btnBlue" id="wearBtn">입혀보기</button>
+          <button class="btnWhite" id="flipBtn">Front/Back</button>
+        </div>
+      </div>
+    </aside>
+
   </div>
 </div>
+
+<script>
+(() => {
+  function setVH(){
+    const vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight) * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  }
+  setVH();
+  window.addEventListener('resize', setVH, { passive:true });
+  window.visualViewport?.addEventListener('resize', setVH, { passive:true });
+})();
+</script>
 
 <script type="module">
   import * as THREE from "three";
   import { OrbitControls } from "three/addons/controls/OrbitControls.js";
   import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-  const $ = (id)=> document.getElementById(id);
+  const $ = (id)=>document.getElementById(id);
   const statusEl = $("status");
-  const setStatus = (txt)=> statusEl.textContent = txt;
+  const setStatus = (t)=> statusEl.textContent = t;
 
-  const DEFAULT_MODEL_URL = new URL("./assets/avatar.glb", location.href).toString();
-  $("modelUrl").value = DEFAULT_MODEL_URL;
+  // ===============================
+  // 1) 의상 프리셋(네가 원하는대로 목록 수정)
+  // - id만 바꾸면 garments/{id}_front.png 자동으로 찾음
+  // ===============================
+  const GARMENTS = [
+    { id:"ts-501", name:"베이식 반팔 티셔츠", cat:"TOP" },
+    { id:"hd-210", name:"데일리 후디", cat:"TOP" },
+    { id:"pt-101", name:"스트레이트 데님 팬츠", cat:"BOTTOM" }
+  ];
 
-  const sliderIds = ["S_all","S_torso","S_leg","S_arm","S_shoulderW","S_hipW"];
-  function syncLabels(){
-    for (const id of sliderIds) $(id+"_v").textContent = Number($(id).value).toFixed(2);
+  // 카테고리별 자동 프리셋(오버레이 MVP 기준)
+  const TUNE_BY_CAT = {
+    TOP:    { x:0.00, y:0.35, z:0.00, s:1.10, rot:0 },
+    BOTTOM: { x:0.00, y:0.05, z:0.00, s:1.20, rot:0 },
+    OUTER:  { x:0.00, y:0.40, z:0.00, s:1.18, rot:0 }
+  };
+
+  // ===============================
+  // 2) UI 렌더(왼쪽/아래 썸네일)
+  // ===============================
+  const side = $("side");
+  const tray = $("tray");
+  const selInfo = $("selInfo");
+
+  let selected = GARMENTS[0];
+
+  function makeThumb(item, where){
+    const el = document.createElement("div");
+    el.className = (where==="side") ? "thumb" : "trayItem";
+    el.innerHTML = `
+      <img src="./garments/${item.id}_front.png"
+           onerror="this.remove(); this.parentElement.insertAdjacentHTML('beforeend','<div style=&quot;font-weight:1000; color:rgba(0,0,0,.45); font-size:12px;&quot;>IMG</div>');" />
+      ${where==="side" ? `<div class="tag">${item.id}</div>` : ``}
+    `;
+    el.addEventListener("click", ()=>{
+      selected = item;
+      markActive();
+      selInfo.textContent = `${item.name} · ${item.id} · ${item.cat}`;
+    });
+    return el;
   }
-  syncLabels();
 
-  // --- THREE setup ---
+  function renderThumbs(){
+    side.innerHTML = "";
+    tray.innerHTML = "";
+    GARMENTS.forEach(g=>{
+      side.appendChild(makeThumb(g,"side"));
+      tray.appendChild(makeThumb(g,"tray"));
+    });
+    markActive();
+    selInfo.textContent = `${selected.name} · ${selected.id} · ${selected.cat}`;
+  }
+
+  function markActive(){
+    [...side.children].forEach((el, i)=> el.classList.toggle("active", GARMENTS[i].id===selected.id));
+    [...tray.children].forEach((el, i)=> el.classList.toggle("active", GARMENTS[i].id===selected.id));
+  }
+
+  renderThumbs();
+
+  // ===============================
+  // 3) THREE 기본 세팅
+  // ===============================
   const canvas = $("c");
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true, preserveDrawingBuffer:true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x070a12);
+  scene.background = null;
 
-  // ✅ 핵심: far를 크게(기본 5000) 잡아서 "로드 됐는데 안 보임" 방지
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 5000);
-  camera.position.set(1.7, 1.3, 2.6);
+  // ✅ far 넉넉히: 큰 모델도 잘림 방지
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 5000);
+  camera.position.set(0, 1.2, 2.4);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
+  renderer.domElement.style.touchAction = "none";
 
-  // 라이트 강화(어두운 재질 대비)
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x223355, 1.0));
-  const key = new THREE.DirectionalLight(0xffffff, 1.35);
-  key.position.set(2.8, 5.0, 2.2);
-  key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
-  scene.add(key);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 1.05));
+  const dir = new THREE.DirectionalLight(0xffffff, 1.1);
+  dir.position.set(3, 5, 2);
+  scene.add(dir);
 
-  // 바닥 + 약간 밝게
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(40, 40),
-    new THREE.MeshStandardMaterial({ color: 0x0e1528, roughness: 1, metalness: 0 })
+  // 바닥 그림자 느낌
+  const disc = new THREE.Mesh(
+    new THREE.CircleGeometry(0.6, 64),
+    new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.10 })
   );
-  ground.rotation.x = -Math.PI / 2;
-  ground.receiveShadow = true;
-  scene.add(ground);
+  disc.rotation.x = -Math.PI/2;
+  disc.position.y = 0.01;
+  scene.add(disc);
 
-  // 디버그용 그리드(아바타가 안 보여도 바닥 기준 확인 가능)
-  const grid = new THREE.GridHelper(20, 20, 0x334466, 0x223344);
-  grid.material.transparent = true;
-  grid.material.opacity = 0.25;
-  scene.add(grid);
+  const root = new THREE.Group();
+  scene.add(root);
+
+  let avatar = null;
+  let cloth = null;           // 의상 오버레이 plane
+  let texFront = null;
+  let texBack  = null;
+  let forceFlip = false;
 
   const loader = new GLTFLoader();
+  const texLoader = new THREE.TextureLoader();
 
-  let modelGroup = null;
-  let skeleton = null;
-  let bones = {};
-  const base = { groupScale: new THREE.Vector3(1,1,1), bonePos: new Map() };
-
-  const normalizeName = (s)=> (s||"").toLowerCase().replaceAll(" ","").replaceAll("_","").replaceAll("-","");
-  function findFirstSkinnedMesh(root){
-    let found = null;
-    root.traverse(o=>{ if (!found && o.isSkinnedMesh && o.skeleton) found = o; });
-    return found;
+  function resize(){
+    const rect = canvas.getBoundingClientRect();
+    const w = Math.max(1, Math.floor(rect.width));
+    const h = Math.max(1, Math.floor(rect.height));
+    renderer.setSize(w, h, false);
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
   }
-  function findBoneByAliases(aliases){
-    if (!skeleton) return null;
-    const aliasSet = aliases.map(normalizeName);
-
-    for (const b of skeleton.bones){
-      const n = normalizeName(b.name);
-      if (aliasSet.includes(n)) return b;
-    }
-    for (const b of skeleton.bones){
-      const n = normalizeName(b.name);
-      for (const a of aliasSet) if (n.includes(a)) return b;
-    }
-    return null;
+  window.addEventListener("resize", resize, { passive:true });
+  if ("ResizeObserver" in window){
+    new ResizeObserver(()=>resize()).observe(canvas.parentElement);
   }
+  resize();
 
-  function captureBase(){
-    base.groupScale.copy(modelGroup.scale);
-    base.bonePos.clear();
-    skeleton.bones.forEach(b=> base.bonePos.set(b.uuid, b.position.clone()));
-  }
-  function restoreBase(){
-    if (!modelGroup || !skeleton) return;
-    modelGroup.scale.copy(base.groupScale);
-    skeleton.bones.forEach(b=>{
-      const p = base.bonePos.get(b.uuid);
-      if (p) b.position.copy(p);
-    });
-  }
-
-  function scaleChildOffset(parentBone, childBone, factor){
-    if (!parentBone || !childBone) return;
-    const orig = base.bonePos.get(childBone.uuid);
-    if (!orig) return;
-    childBone.position.copy(orig).multiplyScalar(factor);
-  }
-  function scaleBoneXOffset(bone, factor){
-    if (!bone) return;
-    const orig = base.bonePos.get(bone.uuid);
-    if (!orig) return;
-    bone.position.set(orig.x * factor, orig.y, orig.z);
-  }
-
-  function mapBones(){
-    bones = {};
-    bones.hips   = findBoneByAliases(["hips","hip","pelvis","root","mixamorighips"]);
-    bones.spine  = findBoneByAliases(["spine","spine01","spine1","spine_01","mixamorigspine"]);
-    bones.chest  = findBoneByAliases(["chest","spine03","spine3","spine_03","spine02","spine2","spine_02","upperchest","mixamorigspine2","mixamorigchest"]);
-
-    bones.lUpperArm = findBoneByAliases(["leftupperarm","upperarml","upperarm_l","mixamorigleftupperarm","mixamorigleftarm"]);
-    bones.lLowerArm = findBoneByAliases(["leftlowerarm","lowerarml","lowerarm_l","mixamorigleftlowerarm","mixamorigleftforearm"]);
-    bones.lHand     = findBoneByAliases(["lefthand","handl","hand_l","mixamoriglefthand"]);
-
-    bones.rUpperArm = findBoneByAliases(["rightupperarm","upperarmr","upperarm_r","mixamorigrightupperarm","mixamorigrightarm"]);
-    bones.rLowerArm = findBoneByAliases(["rightlowerarm","lowerarmr","lowerarm_r","mixamorigrightlowerarm","mixamorigrightforearm"]);
-    bones.rHand     = findBoneByAliases(["righthand","handr","hand_r","mixamorigrighthand"]);
-
-    bones.lUpperLeg = findBoneByAliases(["leftupperleg","upperlegl","upperleg_l","mixamorigleftupleg"]);
-    bones.lLowerLeg = findBoneByAliases(["leftlowerleg","lowerlegl","lowerleg_l","mixamorigleftleg"]);
-    bones.lFoot     = findBoneByAliases(["leftfoot","footl","foot_l","mixamorigleftfoot"]);
-
-    bones.rUpperLeg = findBoneByAliases(["rightupperleg","upperlegr","upperleg_r","mixamorigrightupleg"]);
-    bones.rLowerLeg = findBoneByAliases(["rightlowerleg","lowerlegr","lowerleg_r","mixamorigrightleg"]);
-    bones.rFoot     = findBoneByAliases(["rightfoot","footr","foot_r","mixamorigrightfoot"]);
-  }
-
-  function applyAdjust(){
-    if (!modelGroup || !skeleton) return;
-
-    restoreBase();
-
-    const sAll = Number($("S_all").value);
-    const sTorso = Number($("S_torso").value);
-    const sLeg = Number($("S_leg").value);
-    const sArm = Number($("S_arm").value);
-    const sShoulderW = Number($("S_shoulderW").value);
-    const sHipW = Number($("S_hipW").value);
-
-    modelGroup.scale.set(sAll, sAll, sAll);
-
-    // torso
-    if (bones.spine && bones.chest) scaleChildOffset(bones.spine, bones.chest, sTorso);
-    else if (bones.hips && bones.spine) scaleChildOffset(bones.hips, bones.spine, sTorso);
-
-    // legs
-    if (bones.lUpperLeg && bones.lLowerLeg) scaleChildOffset(bones.lUpperLeg, bones.lLowerLeg, sLeg);
-    if (bones.lLowerLeg && bones.lFoot)     scaleChildOffset(bones.lLowerLeg, bones.lFoot, sLeg);
-    if (bones.rUpperLeg && bones.rLowerLeg) scaleChildOffset(bones.rUpperLeg, bones.rLowerLeg, sLeg);
-    if (bones.rLowerLeg && bones.rFoot)     scaleChildOffset(bones.rLowerLeg, bones.rFoot, sLeg);
-
-    // arms
-    if (bones.lUpperArm && bones.lLowerArm) scaleChildOffset(bones.lUpperArm, bones.lLowerArm, sArm);
-    if (bones.lLowerArm && bones.lHand)     scaleChildOffset(bones.lLowerArm, bones.lHand, sArm);
-    if (bones.rUpperArm && bones.rLowerArm) scaleChildOffset(bones.rUpperArm, bones.rLowerArm, sArm);
-    if (bones.rLowerArm && bones.rHand)     scaleChildOffset(bones.rLowerArm, bones.rHand, sArm);
-
-    // widths
-    if (bones.lUpperArm) scaleBoneXOffset(bones.lUpperArm, sShoulderW);
-    if (bones.rUpperArm) scaleBoneXOffset(bones.rUpperArm, sShoulderW);
-    if (bones.lUpperLeg) scaleBoneXOffset(bones.lUpperLeg, sHipW);
-    if (bones.rUpperLeg) scaleBoneXOffset(bones.rUpperLeg, sHipW);
-
-    // 스켈레톤 갱신(가끔 안 보이는 케이스 방지)
-    modelGroup.updateMatrixWorld(true);
-  }
-
-  function setupShadows(root){
-    root.traverse(o=>{
-      if (o.isMesh){
-        o.castShadow = true;
-        o.receiveShadow = false;
-        // 혹시 재질이 너무 어두우면 약간 보정(원하면 지워도 됨)
-        if (o.material && o.material.isMeshStandardMaterial){
-          o.material.roughness = Math.min(1, o.material.roughness ?? 0.8);
-        }
-      }
-    });
-  }
-
-  function computeBox(root){
-    root.updateWorldMatrix(true, true);
-    const box = new THREE.Box3().setFromObject(root);
-
-    // ✅ 바운딩박스가 비정상(0/NaN)이면: geometry bounding box 강제 계산
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    if (!isFinite(size.x) || !isFinite(size.y) || !isFinite(size.z) || (size.x + size.y + size.z) < 1e-6){
-      root.traverse(o=>{
+  function computeBox(obj){
+    obj.updateWorldMatrix(true,true);
+    const box = new THREE.Box3().setFromObject(obj);
+    const size = new THREE.Vector3(); box.getSize(size);
+    if (!isFinite(size.x) || !isFinite(size.y) || !isFinite(size.z) || (size.x+size.y+size.z)<1e-6){
+      obj.traverse(o=>{
         if (o.isMesh && o.geometry){
           o.geometry.computeBoundingBox?.();
           o.geometry.computeBoundingSphere?.();
         }
       });
-      root.updateWorldMatrix(true, true);
-      return new THREE.Box3().setFromObject(root);
+      obj.updateWorldMatrix(true,true);
+      return new THREE.Box3().setFromObject(obj);
     }
     return box;
   }
 
-  function placeOnGroundAndFrame(root){
-    const box = computeBox(root);
-    const size = new THREE.Vector3();
-    const center = new THREE.Vector3();
-    box.getSize(size);
-    box.getCenter(center);
+  function placeOnGroundAndFrame(obj){
+    const box = computeBox(obj);
+    // 바닥 위로
+    obj.position.y += (-box.min.y);
+    obj.updateWorldMatrix(true,true);
 
-    // ✅ 바닥 위로 올리기(최저 y를 0 근처로)
-    root.position.y += (-box.min.y);
+    const box2 = computeBox(obj);
+    const size = new THREE.Vector3(); box2.getSize(size);
+    const center = new THREE.Vector3(); box2.getCenter(center);
 
-    // 올린 후 다시 계산
-    const box2 = computeBox(root);
-    const size2 = new THREE.Vector3();
-    const center2 = new THREE.Vector3();
-    box2.getSize(size2);
-    box2.getCenter(center2);
+    const maxDim = Math.max(size.x,size.y,size.z);
+    const dist = maxDim * 1.85;
 
-    const maxDim = Math.max(size2.x, size2.y, size2.z);
-    const dist = maxDim * 1.8;
-
-    // ✅ far 자동 확장 (이게 핵심)
-    camera.far = Math.max(5000, dist * 20);
+    camera.far = Math.max(5000, dist*30);
     camera.updateProjectionMatrix();
 
-    camera.position.set(center2.x + dist*0.65, center2.y + dist*0.55, center2.z + dist*0.85);
-    controls.target.copy(center2.clone().add(new THREE.Vector3(0, maxDim*0.15, 0)));
+    camera.position.set(center.x, center.y + size.y*0.15, center.z + dist);
+    controls.target.set(center.x, center.y + size.y*0.55, center.z);
     controls.update();
 
-    return { size: size2, center: center2, maxDim, far: camera.far };
+    return { box:box2, size, center };
   }
 
-  function clearModel(){
-    if (!modelGroup) return;
-    scene.remove(modelGroup);
-    modelGroup.traverse(o=>{
-      if (o.geometry) o.geometry.dispose?.();
-      if (o.material){
-        if (Array.isArray(o.material)) o.material.forEach(m=> m.dispose?.());
-        else o.material.dispose?.();
-      }
+  // ===============================
+  // 4) 의상 오버레이(Plane billboard)
+  // ===============================
+  function ensureCloth(){
+    if (cloth) return cloth;
+    const geo = new THREE.PlaneGeometry(1, 1);
+    const mat = new THREE.MeshBasicMaterial({
+      transparent:true,
+      opacity:1,
+      depthTest:false,
+      depthWrite:false
     });
-    modelGroup = null;
-    skeleton = null;
-    bones = {};
-    base.bonePos.clear();
+    cloth = new THREE.Mesh(geo, mat);
+    cloth.visible = false;
+    cloth.renderOrder = 999;
+    root.add(cloth);
+    return cloth;
   }
 
-  async function loadFromUrl(url){
-    try{
-      setStatus(`상태: 로딩중...\n요청 URL: ${url}`);
-      clearModel();
+  function setDepthMode(){
+    const occ = $("occlusionChk").checked;
+    if (!cloth) return;
+    cloth.material.depthTest = occ ? true : false;
+    cloth.material.depthWrite = false;
+    cloth.material.needsUpdate = true;
+  }
+  $("occlusionChk").addEventListener("change", setDepthMode);
 
-      const gltf = await loader.loadAsync(url);
-      modelGroup = gltf.scene || gltf.scenes?.[0];
-      if (!modelGroup) throw new Error("gltf.scene is empty");
+  function loadTexture(url){
+    return new Promise((resolve, reject)=>{
+      texLoader.load(url, (t)=>{
+        t.colorSpace = THREE.SRGBColorSpace;
+        resolve(t);
+      }, undefined, reject);
+    });
+  }
+  async function loadTextureFromFile(file){
+    const url = URL.createObjectURL(file);
+    try { return await loadTexture(url); }
+    finally { URL.revokeObjectURL(url); }
+  }
 
-      setupShadows(modelGroup);
-      scene.add(modelGroup);
+  function aspect(tex){
+    const img = tex?.image;
+    if(!img) return 0.75;
+    const w = img.naturalWidth || img.width || 1;
+    const h = img.naturalHeight || img.height || 1;
+    return Math.max(0.1, w / Math.max(1,h));
+  }
 
-      const sk = findFirstSkinnedMesh(modelGroup);
-      if (sk && sk.skeleton){
-        skeleton = sk.skeleton;
-        captureBase();
-        mapBones();
-      }
+  // 옷 위치/크기 계산: 바운딩박스 기반
+  const tune = { x:0, y:0.35, z:0, s:1.10, rot:0 };
 
-      const info = placeOnGroundAndFrame(modelGroup);
-      applyAdjust();
+  function updateTuneUI(){
+    $("x").value = tune.x; $("y").value = tune.y; $("z").value = tune.z;
+    $("s").value = tune.s; $("r").value = tune.rot;
+    $("xv").textContent = Number(tune.x).toFixed(2);
+    $("yv").textContent = Number(tune.y).toFixed(2);
+    $("zv").textContent = Number(tune.z).toFixed(2);
+    $("sv").textContent = Number(tune.s).toFixed(2);
+    $("rv").textContent = `${Math.round(tune.rot)}°`;
+  }
+  updateTuneUI();
 
-      setStatus(
-        `상태: 아바타 로드 완료\n` +
-        `스켈레톤: ${skeleton ? skeleton.bones.length : "없음"} bones\n` +
-        `bbox: ${info.size.x.toFixed(2)} x ${info.size.y.toFixed(2)} x ${info.size.z.toFixed(2)}\n` +
-        `camera.far: ${info.far.toFixed(0)}`
-      );
-    }catch(err){
-      console.error(err);
-      setStatus(`상태: 로드 실패\n${String(err?.message || err)}`);
+  function applyTuneFromSliders(){
+    tune.x = Number($("x").value);
+    tune.y = Number($("y").value);
+    tune.z = Number($("z").value);
+    tune.s = Number($("s").value);
+    tune.rot = Number($("r").value);
+
+    $("xv").textContent = Number(tune.x).toFixed(2);
+    $("yv").textContent = Number(tune.y).toFixed(2);
+    $("zv").textContent = Number(tune.z).toFixed(2);
+    $("sv").textContent = Number(tune.s).toFixed(2);
+    $("rv").textContent = `${Math.round(tune.rot)}°`;
+
+    if (avatar) avatar.rotation.y = (tune.rot * Math.PI)/180;
+    placeCloth();
+  }
+  ["x","y","z","s","r"].forEach(id => $(id).addEventListener("input", applyTuneFromSliders));
+
+  function chooseFrontBackTexture(){
+    if (!cloth || !cloth.material.map) return;
+
+    const hasBoth = !!(texFront && texBack);
+    if (!hasBoth) return;
+
+    // 카메라가 아바타 기준 앞/뒤인지로 결정(간단 판정)
+    const camLocal = camera.position.clone();
+    root.worldToLocal(camLocal);
+    let frontView = camLocal.z > 0;
+    if (forceFlip) frontView = !frontView;
+
+    const next = frontView ? texFront : texBack;
+    if (cloth.material.map !== next){
+      cloth.material.map = next;
+      cloth.material.needsUpdate = true;
     }
   }
 
-  $("btnLoad").addEventListener("click", ()=>{
-    const raw = $("modelUrl").value.trim();
-    const url = new URL(raw, location.href).toString();
-    loadFromUrl(url);
-  });
+  function placeCloth(){
+    if (!avatar || !cloth) return;
+    if (!cloth.material.map) return;
 
-  $("filePick").addEventListener("change", (e)=>{
-    const f = e.target.files?.[0];
+    const box = computeBox(avatar);
+    const size = new THREE.Vector3(); box.getSize(size);
+    const center = new THREE.Vector3(); box.getCenter(center);
+
+    // 카테고리별 기본 위치 (TOP/BOTTOM/OUTER)
+    const cat = selected?.cat || "TOP";
+    let yFrac = 0.80;
+    let hFrac = 0.62;
+    if (cat==="BOTTOM"){ yFrac = 0.50; hFrac = 0.80; }
+    if (cat==="OUTER"){ yFrac = 0.82; hFrac = 0.72; }
+
+    const yy = box.min.y + size.y * yFrac + (tune.y * size.y);
+    const h = size.y * hFrac * tune.s;
+
+    const a = aspect(cloth.material.map);
+    let w = h * a;
+    w = Math.max(w, size.x * 0.40);
+    w = Math.min(w, size.x * 1.15);
+
+    // 약간 앞으로 빼기(가림 ON이면 조금 덜)
+    const occ = $("occlusionChk").checked;
+    const zPush = occ ? (size.z * 0.10) : (size.z * 0.18);
+
+    cloth.position.set(center.x + tune.x, yy, center.z + zPush + tune.z);
+    cloth.scale.set(w, h, 1);
+    cloth.visible = true;
+  }
+
+  // 매 프레임 billboard(옷이 카메라를 보게)
+  function billboardCloth(){
+    if (!cloth || !cloth.visible) return;
+    cloth.lookAt(camera.position);
+  }
+
+  // ===============================
+  // 5) 아바타 로드
+  // ===============================
+  function clearAvatar(){
+    if (!avatar) return;
+    root.remove(avatar);
+    avatar.traverse(o=>{
+      if (o.isMesh){
+        o.geometry?.dispose?.();
+        if (Array.isArray(o.material)) o.material.forEach(m=>m?.dispose?.());
+        else o.material?.dispose?.();
+      }
+    });
+    avatar = null;
+  }
+
+  async function loadAvatar(url){
+    try{
+      setStatus(`상태: 아바타 로딩중...\nURL: ${url}`);
+      clearAvatar();
+
+      const gltf = await loader.loadAsync(url);
+      avatar = gltf.scene || gltf.scenes?.[0];
+      if (!avatar) throw new Error("gltf.scene is empty");
+
+      // 기본 그림자/재질 조금 보정(너무 어두운 모델 대비)
+      avatar.traverse(o=>{
+        if (o.isMesh){
+          o.castShadow = true;
+          if (o.material && o.material.isMeshStandardMaterial){
+            o.material.roughness = Math.min(1, o.material.roughness ?? 0.8);
+          }
+        }
+      });
+
+      root.add(avatar);
+      const info = placeOnGroundAndFrame(avatar);
+
+      // 옷 오버레이 준비
+      ensureCloth();
+      setDepthMode();
+
+      setStatus(
+        `상태: 아바타 로드 완료\n`+
+        `bbox: ${info.size.x.toFixed(2)} x ${info.size.y.toFixed(2)} x ${info.size.z.toFixed(2)}\n`+
+        `camera.far: ${camera.far.toFixed(0)}`
+      );
+
+      // 회전 적용
+      avatar.rotation.y = (tune.rot * Math.PI)/180;
+      placeCloth();
+    }catch(e){
+      console.error(e);
+      setStatus(`상태: 아바타 로드 실패\n${String(e?.message || e)}`);
+    }
+  }
+
+  // 기본 자동 로드: ./assets/avatar.glb
+  const DEFAULT_AVATAR_URL = new URL("./assets/avatar.glb", location.href).toString();
+  await loadAvatar(DEFAULT_AVATAR_URL);
+
+  // 아바타 파일 교체
+  $("avatarFile").addEventListener("change", async ()=>{
+    const f = $("avatarFile").files?.[0];
     if (!f) return;
     const url = URL.createObjectURL(f);
-    $("modelUrl").value = url;
-    loadFromUrl(url);
+    try { await loadAvatar(url); }
+    finally { URL.revokeObjectURL(url); }
   });
 
-  $("btnReset").addEventListener("click", ()=>{
-    $("S_all").value = 1.00;
-    $("S_torso").value = 1.00;
-    $("S_leg").value = 1.00;
-    $("S_arm").value = 1.00;
-    $("S_shoulderW").value = 1.00;
-    $("S_hipW").value = 1.00;
-    syncLabels();
-    applyAdjust();
-  });
+  // ===============================
+  // 6) 의상 적용 로직
+  // ===============================
+  async function wearSelected(){
+    try{
+      ensureCloth();
+      setDepthMode();
 
-  $("btnSave").addEventListener("click", ()=>{
-    const cfg = {};
-    for (const id of sliderIds) cfg[id] = Number($(id).value);
-    localStorage.setItem("ootmakase_avatar_cfg", JSON.stringify(cfg));
-    setStatus(`상태: 설정 저장 완료 (localStorage)`);
-  });
+      // 우선 로컬 garments 폴더에서 찾고, 없으면 에러 안내
+      const frontUrl = new URL(`./garments/${selected.id}_front.png`, location.href).toString();
+      const backUrl  = new URL(`./garments/${selected.id}_back.png`, location.href).toString();
 
-  for (const id of sliderIds){
-    $(id).addEventListener("input", ()=>{
-      syncLabels();
-      applyAdjust();
-    });
+      texFront = null; texBack = null;
+
+      // front 필수
+      texFront = await loadTexture(frontUrl);
+
+      // back은 선택
+      try { texBack = await loadTexture(backUrl); } catch(_) { texBack = null; }
+
+      cloth.material.map = texFront;
+      cloth.material.needsUpdate = true;
+      cloth.visible = true;
+
+      // 카테고리 프리셋 자동 적용(원하면 삭제 가능)
+      const base = TUNE_BY_CAT[selected.cat] || TUNE_BY_CAT.TOP;
+      tune.x = base.x; tune.y = base.y; tune.z = base.z; tune.s = base.s;
+      updateTuneUI();
+      applyTuneFromSliders();
+
+      setStatus(`상태: 의상 적용 완료\n${selected.name} · ${selected.id}\n(back: ${texBack ? "있음" : "없음"})`);
+    }catch(e){
+      console.warn(e);
+      setStatus(`상태: 의상 적용 실패\n./garments/${selected.id}_front.png 를 확인하세요.\n(없으면 '업로드 적용' 사용)`);
+    }
   }
 
-  function resize(){
-    const w = canvas.clientWidth, h = canvas.clientHeight;
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-  }
-  addEventListener("resize", resize);
+  $("wearBtn").addEventListener("click", wearSelected);
+  $("wearBtnTop").addEventListener("click", wearSelected);
 
+  $("flipBtn").addEventListener("click", ()=>{
+    forceFlip = !forceFlip;
+    $("flipBtn").textContent = forceFlip ? "Front/Back (ON)" : "Front/Back";
+    chooseFrontBackTexture();
+  });
+
+  // 업로드 적용
+  $("applyBtn").addEventListener("click", async ()=>{
+    const f = $("frontFile").files?.[0] || null;
+    const b = $("backFile").files?.[0] || null;
+    if (!f){
+      setStatus("상태: 업로드 적용 실패\nfront 이미지는 필수입니다.");
+      return;
+    }
+    try{
+      texFront = await loadTextureFromFile(f);
+      texBack = b ? await loadTextureFromFile(b) : null;
+
+      ensureCloth();
+      setDepthMode();
+
+      cloth.material.map = texFront;
+      cloth.material.needsUpdate = true;
+      cloth.visible = true;
+
+      // 선택 cat 프리셋
+      const base = TUNE_BY_CAT[selected.cat] || TUNE_BY_CAT.TOP;
+      tune.x = base.x; tune.y = base.y; tune.z = base.z; tune.s = base.s;
+      updateTuneUI();
+      applyTuneFromSliders();
+
+      setStatus(`상태: 업로드 의상 적용 완료\nfront: OK / back: ${texBack ? "OK" : "없음"}`);
+    }catch(e){
+      console.error(e);
+      setStatus(`상태: 업로드 의상 적용 실패\n${String(e?.message || e)}`);
+    }
+  });
+
+  $("clearBtn").addEventListener("click", ()=>{
+    texFront = null; texBack = null;
+    if (cloth){
+      cloth.visible = false;
+      cloth.material.map = null;
+      cloth.material.needsUpdate = true;
+    }
+    setStatus("상태: 의상 제거 완료");
+  });
+
+  // Auto Fit / Reset
+  $("autoFitBtn").addEventListener("click", ()=>{
+    const base = TUNE_BY_CAT[selected.cat] || TUNE_BY_CAT.TOP;
+    tune.x = base.x; tune.y = base.y; tune.z = base.z; tune.s = base.s;
+    updateTuneUI();
+    applyTuneFromSliders();
+    setStatus(`상태: Auto Fit 적용\ncat: ${selected.cat}`);
+  });
+
+  $("resetBtn").addEventListener("click", ()=>{
+    tune.x = 0; tune.y = 0.35; tune.z = 0; tune.s = 1.10; tune.rot = 0;
+    updateTuneUI();
+    applyTuneFromSliders();
+    setStatus("상태: Reset 완료");
+  });
+
+  // 캡처
+  $("snapBtn").addEventListener("click", ()=>{
+    try{
+      const a = document.createElement("a");
+      a.download = `fit_${selected?.id || "snap"}.png`;
+      a.href = renderer.domElement.toDataURL("image/png");
+      a.click();
+      setStatus("상태: 캡처 완료\nPNG 저장을 시작했습니다.");
+    }catch(_){
+      setStatus("상태: 캡처 실패\n브라우저 보안 설정에 따라 막힐 수 있습니다.");
+    }
+  });
+
+  // ===============================
+  // 7) 렌더 루프
+  // ===============================
   function loop(){
     requestAnimationFrame(loop);
-    resize();
     controls.update();
+    chooseFrontBackTexture();
+    placeCloth();
+    billboardCloth();
     renderer.render(scene, camera);
   }
   loop();
 
-  const saved = localStorage.getItem("ootmakase_avatar_cfg");
-  if (saved){
-    try{
-      const cfg = JSON.parse(saved);
-      for (const id of sliderIds){
-        if (cfg[id]) $(id).value = cfg[id];
-      }
-      syncLabels();
-    }catch{}
-  }
-
-  loadFromUrl(DEFAULT_MODEL_URL);
+  // 초기 안내
+  setStatus("상태: 준비 완료\n왼쪽 썸네일 선택 → '입혀보기'로 적용");
 </script>
 </body>
 </html>
