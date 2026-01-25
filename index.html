@@ -3,622 +3,496 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>옷마카세 | 3D 가상 피팅으로 구매 전 경험을 만듭니다</title>
-  <meta name="description" content="옷마카세는 웹 기반 3D 가상 피팅으로 구매 전 핏을 확인하게 해 반품/교환을 줄이고 전환율을 높입니다." />
-  <meta name="theme-color" content="#000000" />
-
-  <!--
-    GitHub Pages (레포 사이트) 기준 경로 규칙
-    - 같은 폴더에 index.html
-    - images 폴더에 이미지/영상 파일
-    - 이 HTML은 ./images/... 로만 참조합니다.
-    필요한 파일 예시:
-      ./images/logo.png
-      ./images/hero_main.jpg
-      ./images/product-avatar.mp4
-      ./images/product-insights.png (선택)
-      ./images/how-it-works.png (선택)
-      ./images/team.jpg (선택)
-  -->
+  <meta name="description" content="옷마카세 | 웹 기반 3D 가상 피팅으로 사이즈 불확실성을 구매 전 경험으로 바꿉니다." />
+  <title>옷마카세 | 웹 기반 3D 가상 피팅</title>
 
   <style>
     :root{
-      --bg:#ffffff;
-      --text:#0b0b0b;
-      --muted:#6b7280;
-      --line:#e5e7eb;
-      --soft:#f6f7f8;
-      --shadow: 0 14px 40px rgba(0,0,0,.10);
-      --shadow2: 0 10px 22px rgba(0,0,0,.08);
+      --bg: #f7f8fb;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --line: rgba(15, 23, 42, .10);
+      --shadow: 0 18px 48px rgba(15, 23, 42, .12);
+      --shadow2: 0 10px 24px rgba(15, 23, 42, .10);
+      --brand: #111827;
+      --accent: #ffb020;   /* 메인 포인트 */
+      --accent2: #ff8a00;  /* 보조 포인트 */
       --radius: 18px;
       --radius2: 14px;
-      --max: 1180px;
-
-      /* Musinsa-ish accent (subtle) */
-      --accent:#111111;
-      --accent2:#ff6a00;
-      --chip:#111111;
+      --max: 1120px;
     }
 
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{ box-sizing: border-box; }
+    html{ scroll-behavior: smooth; }
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
-      color:var(--text);
-      background:var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 500px at 15% -10%, rgba(255,176,32,.22), transparent 60%),
+        radial-gradient(900px 560px at 90% 10%, rgba(255,138,0,.14), transparent 55%),
+        linear-gradient(180deg, #ffffff 0%, var(--bg) 55%, #ffffff 100%);
     }
-    a{color:inherit; text-decoration:none}
-    img{max-width:100%; display:block}
-    .container{max-width:var(--max); margin:0 auto; padding:0 18px}
+
+    a{ color: inherit; text-decoration: none; }
+    .container{ max-width: var(--max); margin: 0 auto; padding: 0 18px; }
 
     /* Topbar */
     .topbar{
-      position:sticky; top:0; z-index:50;
-      background:rgba(255,255,255,.92);
-      backdrop-filter: blur(10px);
-      border-bottom:1px solid var(--line);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
     }
     .topbar-inner{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:14px;
-      padding:14px 0;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding: 12px 0;
     }
     .brand{
-      display:flex; align-items:center; gap:10px;
-      min-width: 180px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width: 160px;
     }
-    .logo{
-      width:34px; height:34px; border-radius:10px;
-      object-fit:cover;
-      background:#000;
-      border:1px solid #111;
+    .brand img{
+      width: 34px; height: 34px; border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid var(--line);
+      background:#fff;
     }
-    .brand-name{
-      font-weight:900;
-      letter-spacing:-.6px;
-      font-size:16px;
+    .brand strong{
+      letter-spacing: -0.2px;
+      font-weight: 900;
     }
+
     .nav{
-      display:flex; align-items:center; gap:16px;
-      color:#111;
-      font-weight:800;
-      letter-spacing:-.3px;
-      flex-wrap:wrap;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
     }
     .nav a{
-      color:#111;
-      opacity:.8;
-      padding:8px 8px;
-      border-radius:10px;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--muted);
+      padding: 8px 10px;
+      border-radius: 12px;
     }
-    .nav a:hover{opacity:1; background:rgba(0,0,0,.04)}
+    .nav a:hover{ color: var(--text); background: rgba(15,23,42,.04); }
+
     .actions{
       display:flex; align-items:center; gap:10px;
-      min-width: 220px;
-      justify-content:flex-end;
+      min-width: 160px;
+      justify-content: flex-end;
     }
     .btn{
-      display:inline-flex; align-items:center; justify-content:center;
-      padding:10px 14px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#fff;
-      font-weight:900;
-      letter-spacing:-.2px;
-      cursor:pointer;
-      transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
-      box-shadow: 0 8px 18px rgba(0,0,0,.05);
-      white-space:nowrap;
-    }
-    .btn:hover{transform: translateY(-1px); box-shadow: 0 14px 26px rgba(0,0,0,.10)}
-    .btn.primary{
-      background:#111;
-      color:#fff;
-      border-color:#111;
-    }
-    .btn.primary:hover{background:#000}
-    .btn.ghost{
-      background:#fff;
-      color:#111;
-    }
-
-    /* Mobile nav */
-    .menu-btn{display:none}
-    .mobile-panel{display:none}
-
-    /* Hero */
-    .hero{
-      padding:28px 0 18px;
-      background:
-        radial-gradient(900px 380px at 20% -10%, rgba(255,106,0,.10), transparent 55%),
-        radial-gradient(800px 320px at 95% 0%, rgba(0,0,0,.06), transparent 60%),
-        linear-gradient(#fff, #fff);
-    }
-    .hero-grid{
-      display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap:18px;
-      align-items:stretch;
-    }
-    .hero-left{
-      border:1px solid var(--line);
-      border-radius: var(--radius);
-      background:#fff;
-      box-shadow: var(--shadow);
-      padding:22px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      gap:14px;
-    }
-    .kicker{
       display:inline-flex;
       align-items:center;
-      gap:8px;
-      font-weight:900;
-      letter-spacing:-.3px;
-      color:#111;
-      opacity:.95;
-    }
-    .kdot{
-      width:10px; height:10px; border-radius:999px;
-      background: linear-gradient(180deg, #111, #333);
-      box-shadow: 0 10px 18px rgba(0,0,0,.18);
-    }
-    h1{
-      margin:8px 0 0;
-      font-size:44px;
-      line-height:1.07;
-      letter-spacing:-1.2px;
-    }
-    .lead{
-      margin:8px 0 0;
-      color:var(--muted);
-      line-height:1.75;
-      font-weight:700;
-    }
-    .hero-cta{
-      display:flex;
+      justify-content:center;
       gap:10px;
-      flex-wrap:wrap;
-      margin-top:10px;
-      align-items:center;
-    }
-    .hero-metrics{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:10px;
-      margin-top:14px;
-    }
-    .metric{
-      border:1px solid var(--line);
+      padding: 10px 14px;
       border-radius: 14px;
-      padding:12px;
-      background: var(--soft);
+      font-weight: 900;
+      border: 1px solid var(--line);
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(15,23,42,.06);
+      cursor: pointer;
+      user-select:none;
+      white-space: nowrap;
     }
-    .metric b{
-      display:block;
-      font-size:18px;
-      letter-spacing:-.4px;
+    .btn.primary{
+      border-color: transparent;
+      background: linear-gradient(180deg, var(--accent), var(--accent2));
+      color:#1b1600;
+      box-shadow: 0 14px 34px rgba(255,138,0,.28);
     }
-    .metric span{
-      display:block;
-      color:var(--muted);
-      margin-top:4px;
-      font-weight:800;
-      font-size:12px;
-    }
-
-    .hero-right{
-      border-radius: var(--radius);
-      border:1px solid var(--line);
-      overflow:hidden;
-      box-shadow: var(--shadow);
-      background:#0b0b0b;
-      position:relative;
-      min-height: 420px;
-    }
-    .hero-media{
-      position:absolute; inset:0;
-      width:100%; height:100%;
-      object-fit:cover;
-      opacity:.92;
-    }
-    .hero-overlay{
-      position:absolute; inset:0;
-      background:
-        linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.18) 55%, rgba(0,0,0,.10)),
-        linear-gradient(180deg, rgba(0,0,0,.20), rgba(0,0,0,.55));
-    }
-    .hero-badge{
-      position:absolute;
-      left:18px; bottom:18px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      width: min(420px, calc(100% - 36px));
-      color:#fff;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.12);
-      border:1px solid rgba(255,255,255,.18);
-      backdrop-filter: blur(10px);
-      font-weight:900;
-      letter-spacing:-.3px;
-    }
-    .pill .dot{
-      width:8px;height:8px;border-radius:999px;background:var(--accent2);
-      box-shadow:0 10px 20px rgba(255,106,0,.35);
-    }
-    .hero-badge small{
-      display:block;
-      color:rgba(255,255,255,.78);
-      line-height:1.6;
-      font-weight:700;
-    }
+    .btn:hover{ transform: translateY(-1px); }
+    .btn:active{ transform: translateY(0); }
 
     /* Sections */
-    .section{padding:56px 0}
+    section{ padding: 70px 0; }
     .section-title{
       display:flex;
       align-items:flex-end;
-      justify-content:space-between;
-      gap:18px;
-      margin-bottom:18px;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
     }
-    .section-title h2{
-      margin:0;
-      font-size:28px;
-      letter-spacing:-.8px;
+    h2{
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: -0.6px;
     }
-    .section-title p{
-      margin:0;
-      color:var(--muted);
-      font-weight:700;
-      line-height:1.6;
-      max-width: 520px;
+    .subtitle{
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      max-width: 560px;
+      font-weight: 700;
+    }
+
+    /* Hero */
+    .hero{
+      padding: 28px 0 48px;
+    }
+    .hero-wrap{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-top: 18px;
+    }
+    .hero-copy{
+      background: rgba(255,255,255,.78);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 26px;
+    }
+    .eyebrow{
+      margin:0 0 10px;
+      color:#7c4a00;
+      font-weight: 900;
+      letter-spacing: -.2px;
+    }
+    .hero h1{
+      margin: 0 0 12px;
+      font-size: 44px;
+      line-height: 1.07;
+      letter-spacing: -1.2px;
+    }
+    .hero h1 .accent{
+      background: linear-gradient(180deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .lead{
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-weight: 750;
+      line-height: 1.75;
+      font-size: 16px;
+    }
+    .hero-bullets{
+      margin: 14px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.9;
+      font-weight: 750;
+    }
+    .hero-ctas{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .hero-media{
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      background: #fff;
+      min-height: 360px;
+    }
+    .hero-media img{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display:block;
     }
 
     /* Product */
-    .product{
+    .product-grid{
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:16px;
-      align-items:stretch;
+      gap: 18px;
+      align-items: start;
+      margin-top: 14px;
     }
     .card{
-      border:1px solid var(--line);
+      background: rgba(255,255,255,.88);
+      border: 1px solid var(--line);
       border-radius: var(--radius);
-      background:#fff;
       box-shadow: var(--shadow2);
-      padding:18px;
+      padding: 18px;
     }
     .card h3{
-      margin:0 0 8px;
-      font-size:18px;
-      letter-spacing:-.4px;
+      margin: 0 0 8px;
+      font-size: 20px;
+      letter-spacing: -.4px;
     }
-    .card p{margin:0; color:var(--muted); line-height:1.75; font-weight:650}
-    .bullets{margin:12px 0 0; padding-left:18px; color:#111; line-height:1.9; font-weight:750}
-    .bullets li{margin:4px 0}
-    .media-card{
-      border-radius: var(--radius);
-      overflow:hidden;
-      border:1px solid var(--line);
-      box-shadow: var(--shadow2);
-      background:#000;
-      position:relative;
-      min-height: 360px;
-    }
-    .media-card video,
-    .media-card img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-      background:#000;
-    }
-    .media-caption{
-      position:absolute;
-      left:14px; top:14px;
-      display:inline-flex;
-      gap:8px;
-      align-items:center;
-      padding:10px 12px;
-      border-radius:999px;
-      background: rgba(0,0,0,.55);
-      color:#fff;
-      border:1px solid rgba(255,255,255,.18);
-      backdrop-filter: blur(10px);
-      font-weight:900;
-      letter-spacing:-.2px;
-    }
-    .media-caption .mini{
-      width:8px;height:8px;border-radius:999px;background:var(--accent2);
-      box-shadow:0 10px 16px rgba(255,106,0,.35);
+    .card p{
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-weight: 700;
     }
 
-    /* Process (diagram w/ arrows) */
+    .media-box{
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow2);
+      background: #000;
+      min-height: 420px;
+      position: relative;
+    }
+    .media-box video,
+    .media-box img{
+      width: 100%;
+      height: 100%;
+      display:block;
+      object-fit: cover;
+    }
+    .badge{
+      position:absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(255,255,255,.86);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-weight: 900;
+      font-size: 12px;
+      color: var(--text);
+      backdrop-filter: blur(10px);
+    }
+
+    /* Flow diagram */
     .flow{
-      display:grid;
-      grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
-      gap:10px;
-      align-items:stretch;
+      display:flex;
+      gap: 12px;
+      align-items: stretch;
+      flex-wrap: wrap;
+      margin-top: 12px;
     }
     .flow-step{
-      border:1px solid var(--line);
+      flex: 1 1 220px;
+      background: rgba(255,255,255,.88);
+      border: 1px solid var(--line);
       border-radius: var(--radius);
-      background: #fff;
       box-shadow: var(--shadow2);
-      padding:16px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      min-height: 132px;
+      padding: 16px;
+      position: relative;
+      min-height: 124px;
     }
-    .flow-top{
-      display:flex; justify-content:space-between; align-items:center; gap:10px;
-    }
-    .chip{
+    .flow-step .kicker{
       display:inline-flex;
-      padding:6px 10px;
-      border-radius:999px;
-      background: #111;
-      color:#fff;
-      font-weight:900;
-      font-size:12px;
-      letter-spacing:-.2px;
+      align-items:center;
+      gap: 8px;
+      font-weight: 900;
+      font-size: 12px;
+      color: #7c4a00;
+      background: rgba(255,176,32,.16);
+      border: 1px solid rgba(255,176,32,.25);
+      padding: 7px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
     }
-    .flow-step b{
-      font-size:16px;
-      letter-spacing:-.3px;
+    .flow-step h4{
+      margin: 0 0 6px;
+      font-size: 16px;
+      letter-spacing: -.3px;
     }
-    .flow-step span{
-      color:var(--muted);
-      font-weight:650;
-      line-height:1.7;
+    .flow-step p{
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-weight: 700;
+      font-size: 14px;
     }
     .arrow{
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:0 2px;
-      color:#111;
-      opacity:.7;
-      font-weight:900;
-      user-select:none;
+      width: 44px;
+      flex: 0 0 44px;
+      color: rgba(15,23,42,.35);
+      font-weight: 900;
+      font-size: 22px;
     }
-    .arrow svg{width:22px;height:22px}
+    .arrow::before{
+      content:"→";
+    }
 
     /* Reviews */
     .review-summary{
       display:flex;
       align-items:center;
-      justify-content:space-between;
-      gap:14px;
-      margin: 0 0 14px;
-      flex-wrap:wrap;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin: 6px 0 18px;
     }
-    .rating-box{
+    .score{
       display:flex;
       align-items:center;
-      gap:14px;
-      padding:14px 16px;
-      border:1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--soft);
+      gap: 12px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,.88);
+      border: 1px solid var(--line);
+      border-radius: 16px;
       box-shadow: var(--shadow2);
     }
-    .rating-score{
-      font-weight:1000;
-      font-size:34px;
-      letter-spacing:-1px;
-    }
-    .rating-sub{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
+    .score .num{
+      font-size: 28px;
+      font-weight: 1000;
+      letter-spacing: -0.6px;
     }
     .stars{
       display:flex;
-      gap:3px;
-      font-size:16px;
-      line-height:1;
+      gap: 2px;
+      align-items:center;
     }
-    .stars .on{color:#ffb000}
-    .stars .off{color:rgba(0,0,0,.18)}
-    .review-note{
-      color:var(--muted);
-      font-weight:700;
-      line-height:1.6;
-      max-width:520px;
+    .star{
+      width: 16px; height: 16px;
+      display:inline-block;
+      background: linear-gradient(180deg, var(--accent), var(--accent2));
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
     }
-
     .review-grid{
       display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:16px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
     }
-    .review-card{
-      border:1px solid var(--line);
+    .review{
+      background: rgba(255,255,255,.9);
+      border: 1px solid var(--line);
       border-radius: var(--radius);
-      background:#fff;
       box-shadow: var(--shadow2);
-      padding:18px;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
+      padding: 16px;
     }
     .review-head{
       display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
     }
-    .review-user{
+    .user{
       display:flex;
       align-items:center;
-      gap:12px;
+      gap: 10px;
+      min-width: 0;
     }
-    .review-avatar{
-      width:44px; height:44px;
-      border-radius:14px;
-      display:grid; place-items:center;
-      background:#111;
-      color:#fff;
-      font-weight:1000;
-      letter-spacing:-.2px;
-      box-shadow: 0 10px 22px rgba(0,0,0,.18);
+    .avatar{
+      width: 36px; height: 36px;
+      border-radius: 12px;
+      background: #111827;
+      color: #fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 1000;
     }
-    .review-name{font-weight:1000; letter-spacing:-.3px}
-    .review-meta{color:var(--muted); font-weight:800; font-size:12px; margin-top:3px}
-    .review-stars{
-      display:flex; gap:2px;
-      font-size:16px; line-height:1;
-      user-select:none;
-      white-space:nowrap;
+    .uname{
+      font-weight: 1000;
+      letter-spacing: -.3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .review-stars .on{color:#ffb000}
-    .review-stars .off{color:rgba(0,0,0,.18)}
-    .review-text{
-      margin:0;
-      line-height:1.75;
-      color:#111;
-      font-weight:650;
+    .meta{
+      color: var(--muted);
+      font-weight: 750;
+      font-size: 12px;
+      white-space: nowrap;
     }
-    .review-quote{
-      padding:12px 12px;
-      border-radius:14px;
-      background: var(--soft);
-      border:1px solid var(--line);
-      color:#111;
-      font-weight:700;
-      line-height:1.7;
+    .review p{
+      margin: 0;
+      color: var(--text);
+      line-height: 1.8;
+      font-weight: 750;
     }
-    .review-foot{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-      padding-top:4px;
-    }
-    .review-tags{
-      display:flex; gap:8px; flex-wrap:wrap;
-    }
-    .tag{
-      display:inline-flex;
-      padding:6px 10px;
-      border-radius:999px;
-      background:#fff;
-      border:1px solid var(--line);
-      color:#111;
-      font-weight:900;
-      font-size:12px;
-      letter-spacing:-.2px;
-    }
-    .helpful{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      background:#111;
-      color:#fff;
-      border:1px solid #111;
-      font-weight:900;
-      font-size:12px;
-      cursor:pointer;
-      user-select:none;
-    }
-    .helpful svg{width:14px;height:14px}
 
     /* FAQ */
     details{
-      border:1px solid var(--line);
+      background: rgba(255,255,255,.88);
+      border: 1px solid var(--line);
       border-radius: var(--radius);
-      background:#fff;
       box-shadow: var(--shadow2);
-      padding:14px 16px;
-      margin:10px 0;
+      padding: 14px 16px;
+      margin-bottom: 12px;
     }
     summary{
-      cursor:pointer;
-      font-weight:1000;
-      letter-spacing:-.3px;
-      list-style:none;
+      cursor: pointer;
+      font-weight: 1000;
+      letter-spacing: -.3px;
+      list-style: none;
     }
-    summary::-webkit-details-marker{display:none}
+    summary::-webkit-details-marker{ display:none; }
     details p{
-      margin:10px 0 0;
-      color:var(--muted);
-      line-height:1.75;
-      font-weight:650;
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.75;
+      font-weight: 750;
+    }
+
+    /* Company */
+    .company{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 18px;
+      margin-top: 12px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.85);
+      font-weight: 900;
+      color: var(--muted);
+      margin: 0 10px 10px 0;
+    }
+    .list{
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.9;
+      font-weight: 750;
     }
 
     /* Footer */
     .footer{
-      border-top:1px solid var(--line);
-      padding:26px 0 34px;
-      color:var(--muted);
-      background:#fff;
+      border-top: 1px solid var(--line);
+      padding: 26px 0;
+      color: var(--muted);
+      background: rgba(255,255,255,.7);
+      text-align: center;
+      font-weight: 750;
     }
-    .footer-grid{
-      display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap:14px;
-      align-items:start;
-    }
-    .foot-title{font-weight:1000; color:#111; letter-spacing:-.3px}
-    .foot-links{display:flex; gap:12px; flex-wrap:wrap}
-    .foot-links a{opacity:.9}
-    .foot-links a:hover{opacity:1; text-decoration:underline}
 
     /* Responsive */
-    @media (max-width: 980px){
-      h1{font-size:38px}
-      .hero-grid{grid-template-columns:1fr}
-      .hero-right{min-height: 320px}
-      .product{grid-template-columns:1fr}
-      .flow{grid-template-columns:1fr}
-      .arrow{display:none}
-      .review-grid{grid-template-columns:1fr}
-      .actions{min-width:auto}
-      .nav{display:none}
-      .menu-btn{display:inline-flex}
-      .mobile-panel{
-        display:none;
-        border-top:1px solid var(--line);
-        background:#fff;
-      }
-      .mobile-panel.open{display:block}
-      .mobile-nav{
-        display:flex;
-        flex-direction:column;
-        gap:6px;
-        padding:10px 0 14px;
-      }
-      .mobile-nav a{
-        padding:12px 10px;
-        border-radius:12px;
-        border:1px solid var(--line);
-        background: var(--soft);
-        font-weight:900;
-      }
+    @media (max-width: 920px){
+      .hero-wrap{ grid-template-columns: 1fr; }
+      .product-grid{ grid-template-columns: 1fr; }
+      .company{ grid-template-columns: 1fr; }
+      .review-grid{ grid-template-columns: 1fr; }
+      .actions{ min-width: auto; }
+      .brand{ min-width: auto; }
     }
   </style>
 </head>
 
-<body>
+<body id="top">
   <!-- Topbar -->
   <header class="topbar">
     <div class="container">
       <div class="topbar-inner">
         <a class="brand" href="#top" aria-label="옷마카세 홈">
-          <img class="logo" src="./images/logo.png" alt="옷마카세 로고" />
-          <div class="brand-name">옷마카세</div>
+          <img src="./images/logo.png" alt="옷마카세 로고" />
+          <strong>옷마카세</strong>
         </a>
 
         <nav class="nav" aria-label="주요 메뉴">
@@ -626,485 +500,335 @@
           <a href="#process">도입</a>
           <a href="#reviews">리뷰</a>
           <a href="#faq">FAQ</a>
-          <a href="#about">회사 소개</a>
+          <a href="#company">회사 소개</a>
         </nav>
 
         <div class="actions">
-          <a class="btn ghost" href="#contact">문의</a>
-          <a class="btn primary" href="#contact">데모 요청</a>
-          <button class="btn menu-btn" id="menuBtn" type="button" aria-label="메뉴 열기">메뉴</button>
-        </div>
-      </div>
-
-      <div class="mobile-panel" id="mobilePanel">
-        <div class="mobile-nav">
-          <a href="#product">제품</a>
-          <a href="#process">도입</a>
-          <a href="#reviews">리뷰</a>
-          <a href="#faq">FAQ</a>
-          <a href="#about">회사 소개</a>
-          <a href="#contact">문의 / 데모 요청</a>
+          <a class="btn primary" href="#company" title="회사 소개로 이동">회사 소개</a>
         </div>
       </div>
     </div>
   </header>
 
   <!-- Hero -->
-  <main id="top">
-    <section class="hero">
-      <div class="container">
-        <div class="hero-grid">
-          <div class="hero-left">
-            <div>
-              <div class="kicker"><span class="kdot"></span> 웹 기반 3D 가상 피팅</div>
-              <h1>온라인 쇼핑의 사이즈 불안을<br>“구매 전 경험”으로 바꿉니다</h1>
-              <p class="lead">
-                옷마카세는 설치 없이 브라우저에서 바로 실행되는 3D 피팅 경험을 제공해
-                반품/교환을 줄이고 전환율을 높입니다. 브랜드/플랫폼은 도입 부담을 낮추고,
-                고객은 구매 확신을 얻습니다.
-              </p>
+  <section class="hero">
+    <div class="container">
+      <div class="hero-wrap">
+        <div class="hero-copy">
+          <p class="eyebrow">웹 기반 3D 가상 피팅 솔루션</p>
+          <h1>
+            온라인 쇼핑의 <span class="accent">사이즈 불안</span>을<br/>
+            “구매 전 경험”으로 바꿉니다
+          </h1>
+          <p class="lead">
+            옷마카세는 상품 상세 흐름 안에서 자연스럽게 “입어보기”를 제공하여,
+            고객은 구매 확신을 얻고 브랜드/플랫폼은 반품·CS 비용을 줄일 수 있도록 돕습니다.
+          </p>
 
-              <div class="hero-cta">
-                <a class="btn primary" href="#contact">지금 데모 요청</a>
-                <a class="btn ghost" href="#product">제품 더 보기</a>
-              </div>
-
-              <div class="hero-metrics" aria-label="핵심 가치">
-                <div class="metric">
-                  <b>반품 비용 절감</b>
-                  <span>사이즈 미스/핏 불일치 완화</span>
-                </div>
-                <div class="metric">
-                  <b>전환율 개선</b>
-                  <span>구매 확신을 만드는 경험</span>
-                </div>
-                <div class="metric">
-                  <b>도입 간편</b>
-                  <span>설치 없이 웹에서 바로</span>
-                </div>
-              </div>
-            </div>
+          <div class="hero-ctas">
+            <a class="btn primary" href="#product">제품 보기</a>
+            <a class="btn" href="#faq">자주 묻는 질문</a>
           </div>
 
-          <div class="hero-right" aria-label="메인 비주얼">
-            <img class="hero-media" src="./images/hero_main.jpg" alt="옷마카세 메인 이미지" />
-            <div class="hero-overlay"></div>
-            <div class="hero-badge">
-              <div class="pill"><span class="dot"></span> 상품 상세에 자연스럽게 “입어보기”를 삽입</div>
-              <small>
-                고객은 사이즈/핏을 확인하고, 브랜드는 이탈을 줄입니다.<br>
-                웹 임베드/SDK 방식으로 기존 커머스 UI에 자연스럽게 연결합니다.
-              </small>
-            </div>
-          </div>
+          <ul class="hero-bullets">
+            <li>설치 없이 브라우저에서 즉시 실행 (모바일/PC)</li>
+            <li>상품 이미지·사이즈 정보 옆에 자연스럽게 삽입</li>
+            <li>전환율/체류시간 개선을 위한 운영 친화적 구성</li>
+          </ul>
+        </div>
+
+        <div class="hero-media" aria-label="메인 비주얼">
+          <img src="./images/hero_main.jpg" alt="옷마카세 메인 이미지" />
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Product -->
-    <section id="product" class="section">
-      <div class="container">
-        <div class="section-title">
-          <h2>제품</h2>
-          <p>구매 흐름을 방해하지 않고, “입어보기”를 쇼핑 경험의 일부로 만듭니다.</p>
+  <!-- Product -->
+  <section id="product">
+    <div class="container">
+      <div class="section-title">
+        <h2>제품</h2>
+        <p class="subtitle">
+          고객이 “상품 상세”를 보는 그 자리에서, 클릭 한 번으로 피팅 경험을 제공합니다.
+        </p>
+      </div>
+
+      <div class="product-grid">
+        <div class="card">
+          <h3>상품 상세에 자연스럽게 들어갑니다</h3>
+          <p>
+            “입어보기”는 별도 앱 설치나 복잡한 이동 없이,
+            구매 흐름을 방해하지 않는 형태로 배치됩니다.
+          </p>
+          <ul class="list">
+            <li>브랜드 UX 톤에 맞춘 버튼/모듈 구성</li>
+            <li>사이즈 표·색상 옵션과 연동 가능한 구조</li>
+            <li>운영/개선이 쉬운 도입 방식(임베드 중심)</li>
+          </ul>
         </div>
 
-        <div class="product">
-          <div class="card">
-            <h3>상품 상세에 자연스럽게 들어갑니다</h3>
-            <p>
-              고객은 “입어보기” 버튼으로 핏을 확인하고, 브랜드는 구매 이탈을 줄일 수 있습니다.
-              실제 운영을 가정한 UI/UX로 설계되어 발표/데모에서 설득력이 높습니다.
-            </p>
-            <ul class="bullets">
-              <li>설치 없음, 모바일/PC 브라우저 지원</li>
-              <li>상품 이미지/사이즈 표와 함께 노출</li>
-              <li>AB 테스트 가능한 구성(문구/버튼/배치)</li>
-            </ul>
-          </div>
+        <div class="media-box">
+          <span class="badge">3D Fitting Preview</span>
 
-          <div class="media-card" aria-label="제품 데모 영상">
-            <div class="media-caption"><span class="mini"></span> 제품 데모 (영상)</div>
-            <!-- 요청하신 파일명: product-avatar.mp4 -->
-            <video
-              src="./images/product-avatar.mp4"
-              autoplay
-              muted
-              loop
-              playsinline
-              controls
-              preload="metadata"
-              poster="./images/product-avatar.png"
-            >
-              이 브라우저는 video 태그를 지원하지 않습니다.
-            </video>
-          </div>
+          <!-- mp4가 있으면 영상으로 표시됩니다 -->
+          <video autoplay muted loop playsinline preload="metadata" poster="./images/product-avatar.png">
+            <source src="./images/product-avatar.mp4" type="video/mp4" />
+            <!-- 영상이 안 되면 이미지로 대체 -->
+            <img src="./images/product-avatar.png" alt="제품 미리보기 이미지" />
+          </video>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Process -->
-    <section id="process" class="section" style="background: var(--soft); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
-      <div class="container">
-        <div class="section-title">
-          <h2>도입 프로세스</h2>
-          <p>단순 나열(1,2,3,4)이 아니라, 실제 제안서처럼 “흐름”으로 이해되도록 구성했습니다.</p>
+  <!-- Process -->
+  <section id="process">
+    <div class="container">
+      <div class="section-title">
+        <h2>도입 프로세스</h2>
+        <p class="subtitle">
+          “단순 단계 나열”이 아니라 실제 제안서처럼, 도입 후 운영까지의 흐름을 한 번에 이해하도록 구성했습니다.
+        </p>
+      </div>
+
+      <div class="flow" aria-label="도입 흐름 다이어그램">
+        <div class="flow-step">
+          <div class="kicker">요건 정의</div>
+          <h4>목표/지표 합의</h4>
+          <p>반품률·전환율·체류시간 등 목표 KPI를 정의하고, 적용 구간(상품상세/장바구니)을 확정합니다.</p>
         </div>
 
-        <div class="flow" aria-label="도입 흐름 다이어그램">
-          <div class="flow-step">
-            <div class="flow-top">
-              <span class="chip">Step 01</span>
-            </div>
-            <b>요구사항 확인</b>
-            <span>카테고리/상품군, UX 목표(전환/반품)와 KPI를 정의합니다.</span>
-          </div>
+        <div class="arrow" aria-hidden="true"></div>
 
-          <div class="arrow" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
+        <div class="flow-step">
+          <div class="kicker">임베드 적용</div>
+          <h4>상세 페이지 삽입</h4>
+          <p>브랜드 UI에 맞춰 버튼/모듈을 삽입하고, 고객이 자연스럽게 “입어보기”를 사용하도록 설계합니다.</p>
+        </div>
 
-          <div class="flow-step">
-            <div class="flow-top">
-              <span class="chip">Step 02</span>
-            </div>
-            <b>임베드 적용</b>
-            <span>상품 상세에 “입어보기” 모듈을 삽입하고, 브랜드 UX와 톤을 맞춥니다.</span>
-          </div>
+        <div class="arrow" aria-hidden="true"></div>
 
-          <div class="arrow" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
+        <div class="flow-step">
+          <div class="kicker">데이터 연결</div>
+          <h4>사이즈/핏 정보 매핑</h4>
+          <p>사이즈 표·핏 가이드·색상 옵션 등 상품 데이터와 연결해, 실제 구매 판단에 도움이 되게 만듭니다.</p>
+        </div>
 
-          <div class="flow-step">
-            <div class="flow-top">
-              <span class="chip">Step 03</span>
-            </div>
-            <b>데이터/룩 설정</b>
-            <span>사이즈표/핏 기준을 반영하고, 상품 이미지/컬러/각도를 최적화합니다.</span>
-          </div>
+        <div class="arrow" aria-hidden="true"></div>
 
-          <div class="arrow" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-
-          <div class="flow-step">
-            <div class="flow-top">
-              <span class="chip">Step 04</span>
-            </div>
-            <b>성과 측정/개선</b>
-            <span>전환율/반품율을 추적하고, 버튼/문구/배치 AB 테스트로 개선합니다.</span>
-          </div>
+        <div class="flow-step">
+          <div class="kicker">운영 고도화</div>
+          <h4>성과 측정 & 개선</h4>
+          <p>클릭률/전환 퍼널을 기반으로 AB 테스트를 진행하고, UX 카피·노출 위치를 지속 개선합니다.</p>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Reviews -->
-    <section id="reviews" class="section">
-      <div class="container">
-        <div class="section-title">
-          <h2>리뷰</h2>
-          <p>“실제로 써본 느낌”을 살린 문장으로 구성했습니다. 발표 때 신뢰감을 주는 포인트입니다.</p>
-        </div>
-
-        <div class="review-summary">
-          <div class="rating-box" aria-label="평균 평점">
-            <div class="rating-score">4.8</div>
-            <div class="rating-sub">
-              <div class="stars" aria-hidden="true">
-                <span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span>
-              </div>
-              <div style="color:var(--muted); font-weight:800; font-size:12px;">최근 30일 기준 · 4개 리뷰</div>
-            </div>
-          </div>
-
-          <div class="review-note">
-            사이즈/핏 불확실성이 줄어들면 “구매 확신”이 올라갑니다. 리뷰는 고객/운영자 관점을 섞어
-            실제 서비스처럼 보이도록 구성했습니다.
-          </div>
-        </div>
-
-        <div class="review-grid">
-          <!-- 유** -->
-          <article class="review-card">
-            <div class="review-head">
-              <div class="review-user">
-                <div class="review-avatar">유</div>
-                <div>
-                  <div class="review-name">유**</div>
-                  <div class="review-meta">온라인 구매 · 재구매 2회 · 2026.01.25</div>
-                </div>
-              </div>
-              <div class="review-stars" aria-label="별점 5점">
-                <span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span>
-              </div>
-            </div>
-            <p class="review-text">
-              “이 어플 쓰고 나서 반품 거의 안 해요. 원래는 사이즈 애매하면 일단 시켰다가 돌려보냈는데,
-              이제는 입어보고 확신 생기면 바로 결제하게 돼요.”
-            </p>
-            <div class="review-quote">사이즈 미스 때문에 생기던 스트레스가 확 줄었습니다.</div>
-            <div class="review-foot">
-              <div class="review-tags">
-                <span class="tag">반품 감소</span>
-                <span class="tag">구매 확신</span>
-              </div>
-              <div class="helpful" role="button" aria-label="도움이 돼요">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M10 21h8a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-5l1-5-6 7v9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 21h4V11H4v10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                도움돼요
-              </div>
-            </div>
-          </article>
-
-          <!-- 맹** -->
-          <article class="review-card">
-            <div class="review-head">
-              <div class="review-user">
-                <div class="review-avatar">맹</div>
-                <div>
-                  <div class="review-name">맹**</div>
-                  <div class="review-meta">브랜드 운영 · CS · 2026.01.24</div>
-                </div>
-              </div>
-              <div class="review-stars" aria-label="별점 5점">
-                <span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span>
-              </div>
-            </div>
-            <p class="review-text">
-              “고객 문의에서 ‘이거 크게 나와요?’ 같은 질문이 정말 많았는데, 입어보기 경험이 있으니까
-              문의/불만이 확 줄어들어요. 운영 입장에서는 진짜 체감됩니다.”
-            </p>
-            <div class="review-quote">구매 전 안내가 명확해져서 CS가 편해졌어요.</div>
-            <div class="review-foot">
-              <div class="review-tags">
-                <span class="tag">CS 부담 완화</span>
-                <span class="tag">이탈 감소</span>
-              </div>
-              <div class="helpful" role="button" aria-label="도움이 돼요">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M10 21h8a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-5l1-5-6 7v9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 21h4V11H4v10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                도움돼요
-              </div>
-            </div>
-          </article>
-
-          <!-- 최** (별 4개) -->
-          <article class="review-card">
-            <div class="review-head">
-              <div class="review-user">
-                <div class="review-avatar">최</div>
-                <div>
-                  <div class="review-name">최**</div>
-                  <div class="review-meta">모바일 쇼핑 · 아우터 구매 · 2026.01.23</div>
-                </div>
-              </div>
-              <div class="review-stars" aria-label="별점 4점">
-                <span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="off">★</span>
-              </div>
-            </div>
-            <p class="review-text">
-              “모바일에서 바로 되는 게 제일 좋았어요. 다만 더 많은 브랜드/상품이 붙으면
-              진짜 ‘필수 기능’ 될 것 같아요. 기본 경험은 만족합니다.”
-            </p>
-            <div class="review-quote">설치 없이 바로 되는 게 가장 큰 장점이에요.</div>
-            <div class="review-foot">
-              <div class="review-tags">
-                <span class="tag">모바일 최적화</span>
-                <span class="tag">확장 기대</span>
-              </div>
-              <div class="helpful" role="button" aria-label="도움이 돼요">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M10 21h8a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-5l1-5-6 7v9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 21h4V11H4v10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                도움돼요
-              </div>
-            </div>
-          </article>
-
-          <!-- 홍** -->
-          <article class="review-card">
-            <div class="review-head">
-              <div class="review-user">
-                <div class="review-avatar">홍</div>
-                <div>
-                  <div class="review-name">홍**</div>
-                  <div class="review-meta">커머스 기획 · 파일럿 테스트 · 2026.01.22</div>
-                </div>
-              </div>
-              <div class="review-stars" aria-label="별점 5점">
-                <span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span><span class="on">★</span>
-              </div>
-            </div>
-            <p class="review-text">
-              “상품 상세 UX를 해치지 않고 자연스럽게 들어가서 좋았어요. ‘구매 전 확인’이라는
-              메시지가 명확하니까 데모/설명할 때도 설득이 잘 됩니다.”
-            </p>
-            <div class="review-quote">‘입어보기’가 구매 과정에 자연스럽게 녹아듭니다.</div>
-            <div class="review-foot">
-              <div class="review-tags">
-                <span class="tag">도입 설득력</span>
-                <span class="tag">전환율 개선</span>
-              </div>
-              <div class="helpful" role="button" aria-label="도움이 돼요">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M10 21h8a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-5l1-5-6 7v9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 21h4V11H4v10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                도움돼요
-              </div>
-            </div>
-          </article>
-        </div>
+  <!-- Reviews -->
+  <section id="reviews">
+    <div class="container">
+      <div class="section-title">
+        <h2>리뷰</h2>
+        <p class="subtitle">
+          “사이즈 미스”의 불안이 줄어들면 구매 확신이 올라갑니다. 실제 사용자/운영자 관점을 섞어 구성했습니다.
+        </p>
       </div>
-    </section>
 
-    <!-- FAQ -->
-    <section id="faq" class="section" style="background: var(--soft); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
-      <div class="container">
-        <div class="section-title">
-          <h2>FAQ</h2>
-          <p>발표에서 자주 나오는 질문을 “진짜 서비스” 톤으로 정리했습니다.</p>
-        </div>
-
-        <details>
-          <summary>설치가 필요한가요?</summary>
-          <p>아니요. 옷마카세는 웹 기반으로 동작하며, 고객은 브라우저에서 바로 실행합니다. 별도 앱 설치 없이 접근할 수 있습니다.</p>
-        </details>
-
-        <details>
-          <summary>도입 방식은 어떻게 되나요?</summary>
-          <p>상품 상세 페이지에 “입어보기” 모듈을 임베드/SDK 형태로 연결합니다. 기존 디자인/UX 톤을 해치지 않도록 UI를 맞춰드립니다.</p>
-        </details>
-
-        <details>
-          <summary>반품/교환이 정말 줄어드나요?</summary>
-          <p>사이즈/핏 불확실성이 감소하면 반품/교환 사유 중 큰 비중을 차지하는 “사이즈 미스”가 줄어듭니다. 또한 구매 확신이 올라 전환율 개선 효과를 기대할 수 있습니다.</p>
-        </details>
-
-        <details>
-          <summary>모바일에서도 되나요?</summary>
-          <p>네. 모바일/PC 모두 브라우저에서 동작하며, UI는 반응형으로 최적화되어 있습니다.</p>
-        </details>
-      </div>
-    </section>
-
-    <!-- About -->
-    <section id="about" class="section">
-      <div class="container">
-        <div class="section-title">
-          <h2>회사 소개</h2>
-          <p>옷마카세는 “구매 전 경험”을 중심으로 커머스 UX를 재설계합니다.</p>
-        </div>
-
-        <div class="product">
-          <div class="card">
-            <h3>우리가 해결하는 문제</h3>
-            <p>
-              온라인 패션 구매에서 “사이즈/핏 불확실성”은 반품/교환을 유발하고
-              구매 이탈을 만듭니다. 옷마카세는 3D 피팅 경험으로 그 공백을 메웁니다.
-            </p>
-            <ul class="bullets">
-              <li>고객: 구매 전 핏 확인 → 실패 경험 감소</li>
-              <li>브랜드: 반품 비용/CS 비용 절감</li>
-              <li>플랫폼: 전환율/체류시간 개선 기대</li>
-            </ul>
-          </div>
-
-          <div class="card">
-            <h3>파트너십(예시)</h3>
-            <p>발표용으로 실제 협업을 가정한 형태입니다. 브랜드/플랫폼에 맞게 교체해서 사용하세요.</p>
-            <ul class="bullets">
-              <li>MUSINSA</li>
-              <li>ZIGZAG</li>
-              <li>29CM</li>
-              <li>WCONCEPT</li>
-              <li>ABLY</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Contact -->
-    <section id="contact" class="section" style="background: var(--soft); border-top:1px solid var(--line);">
-      <div class="container">
-        <div class="section-title">
-          <h2>문의 / 데모 요청</h2>
-          <p>발표에서는 여기로 유도하면 “실제 서비스” 느낌이 확 살아납니다.</p>
-        </div>
-
-        <div class="product">
-          <div class="card">
-            <h3>데모 요청 안내</h3>
-            <p>아래 버튼은 실제 메일/폼으로 연결하는 형태로 바꾸면 완성도 더 올라갑니다.</p>
-            <div class="hero-cta" style="margin-top:12px">
-              <a class="btn primary" href="mailto:demo@ootmakase.site?subject=%EC%98%B7%EB%A7%88%EC%B9%B4%EC%84%B8%20%EB%8D%B0%EB%AA%A8%20%EC%9A%94%EC%B2%AD&body=%ED%9A%8C%EC%82%AC/%EB%B8%8C%EB%9E%9C%EB%93%9C%EB%AA%85%3A%0A%EB%AC%B8%EC%9D%98%20%EB%82%B4%EC%9A%A9%3A%0A%EC%97%B0%EB%9D%BD%EC%B2%98%3A">메일로 데모 요청</a>
-              <a class="btn ghost" href="#top">홈으로</a>
-            </div>
-          </div>
-
-          <div class="card">
-            <h3>발표용 한 줄 요약</h3>
-            <p class="review-quote" style="margin:0">
-              “옷마카세는 온라인 쇼핑의 사이즈 불안을, 구매 전에 확인하는 경험으로 바꿉니다.”
-            </p>
-            <ul class="bullets">
-              <li>설치 없이 웹에서 바로</li>
-              <li>상품 상세에 자연스럽게 삽입</li>
-              <li>반품/교환 및 구매 이탈 감소 기대</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-      <div class="container">
-        <div class="footer-grid">
+      <div class="review-summary">
+        <div class="score">
+          <div class="num">4.8</div>
           <div>
-            <div class="foot-title">옷마카세</div>
-            <div style="margin-top:8px; line-height:1.7; font-weight:650;">
-              웹 기반 3D 가상 피팅 · 구매 전 경험 설계<br/>
-              © <span id="year"></span> OOTMAKASE. All rights reserved.
+            <div class="stars" aria-label="평점 5점 만점에 4.8점">
+              <span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star" style="opacity:.55"></span>
             </div>
-          </div>
-          <div>
-            <div class="foot-title">바로가기</div>
-            <div class="foot-links" style="margin-top:10px;">
-              <a href="#product">제품</a>
-              <a href="#process">도입</a>
-              <a href="#reviews">리뷰</a>
-              <a href="#faq">FAQ</a>
-              <a href="#about">회사 소개</a>
-              <a href="#contact">문의</a>
-            </div>
+            <div class="meta">최근 30일 기준 · 4개 리뷰</div>
           </div>
         </div>
       </div>
-    </footer>
-  </main>
+
+      <div class="review-grid">
+        <article class="review">
+          <div class="review-head">
+            <div class="user">
+              <div class="avatar">유</div>
+              <div>
+                <div class="uname">유**</div>
+                <div class="meta">온라인 구매 · 재구매 경험 · 2026.01.25</div>
+              </div>
+            </div>
+            <div class="stars" aria-hidden="true">
+              <span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span>
+            </div>
+          </div>
+          <p>“이거 쓰고 나서 반품 거의 안 해요. 예전엔 사이즈 애매하면 일단 시켰다가 돌려보냈는데, 이제는 입어보고 확신 생기면 바로 결제하게 돼요.”</p>
+        </article>
+
+        <article class="review">
+          <div class="review-head">
+            <div class="user">
+              <div class="avatar">맹</div>
+              <div>
+                <div class="uname">맹**</div>
+                <div class="meta">브랜드 운영 · CS · 2026.01.24</div>
+              </div>
+            </div>
+            <div class="stars" aria-hidden="true">
+              <span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span>
+            </div>
+          </div>
+          <p>“고객 문의에서 ‘이거 크게 나와요?’ 같은 질문이 눈에 띄게 줄었어요. 운영 입장에서는 CS 피로도가 줄고, 구매 전환도 더 깔끔해집니다.”</p>
+        </article>
+
+        <article class="review">
+          <div class="review-head">
+            <div class="user">
+              <div class="avatar">최</div>
+              <div>
+                <div class="uname">최**</div>
+                <div class="meta">모바일 사용자 · 데님/아우터 · 2026.01.23</div>
+              </div>
+            </div>
+            <div class="stars" aria-hidden="true">
+              <span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star" style="opacity:.55"></span>
+            </div>
+          </div>
+          <p>“모바일에서 바로 되니까 편해요. 특히 아우터는 핏 느낌이 애매했는데, 구매 전에 한번 확인하니까 실패 확률이 줄었습니다.”</p>
+        </article>
+
+        <article class="review">
+          <div class="review-head">
+            <div class="user">
+              <div class="avatar">홍</div>
+              <div>
+                <div class="uname">홍**</div>
+                <div class="meta">플랫폼 관점 · 전환 퍼널 · 2026.01.22</div>
+              </div>
+            </div>
+            <div class="stars" aria-hidden="true">
+              <span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span><span class="star"></span>
+            </div>
+          </div>
+          <p>“‘입어보기’가 상품 상세 흐름에 자연스럽게 들어가 있으니 이탈이 덜해요. 버튼 위치/카피를 조금만 튜닝해도 클릭률이 바로 반응합니다.”</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="container">
+      <div class="section-title">
+        <h2>FAQ</h2>
+        <p class="subtitle">발표 때 자주 나오는 질문들을, 짧고 명확하게 정리했습니다.</p>
+      </div>
+
+      <details>
+        <summary>정확도가 완벽해야만 의미가 있나요?</summary>
+        <p>
+          옷마카세는 “완벽한 수치”보다 “구매 판단에 도움이 되는 경험”에 초점을 둡니다.
+          고객이 ‘내가 입으면 어떤 느낌일지’를 미리 확인할 수 있으면, 사이즈 불확실성으로 인한 반품/교환을 줄이는 데 실질적인 효과가 있습니다.
+        </p>
+      </details>
+
+      <details>
+        <summary>모바일에서도 잘 동작하나요?</summary>
+        <p>
+          네. 설치 없이 브라우저에서 실행되는 형태로 설계되어, 모바일/PC 모두에서 동일한 흐름으로 제공합니다.
+        </p>
+      </details>
+
+      <details>
+        <summary>도입 난이도는 어느 정도인가요?</summary>
+        <p>
+          상품 상세에 임베드하는 방식이 핵심이라, 개발/운영 리소스를 과도하게 요구하지 않습니다.
+          초기에는 제한된 상품군으로 시작해, 성과를 확인한 뒤 점진적으로 확대하는 방식이 가장 효율적입니다.
+        </p>
+      </details>
+
+      <details>
+        <summary>어떤 브랜드/플랫폼에 적합한가요?</summary>
+        <p>
+          반품률이 부담인 카테고리(아우터, 데님, 셋업 등)와 사이즈 편차가 큰 브랜드에 특히 적합합니다.
+          또한 전환율 개선을 목표로 상세 페이지 UX를 적극적으로 최적화하는 팀과 시너지가 큽니다.
+        </p>
+      </details>
+    </div>
+  </section>
+
+  <!-- Company -->
+  <section id="company">
+    <div class="container">
+      <div class="section-title">
+        <h2>회사 소개</h2>
+        <p class="subtitle">
+          옷마카세는 “구매 전 경험”을 중심으로 커머스 UX를 재설계합니다.
+          반품·교환이 당연한 쇼핑 문화를, 확신 있는 구매 경험으로 바꾸는 것이 목표입니다.
+        </p>
+      </div>
+
+      <div class="company">
+        <div class="card">
+          <h3>비전</h3>
+          <p>
+            온라인 쇼핑에서 가장 큰 장벽은 “내가 입었을 때의 확신 부족”입니다.
+            옷마카세는 고객이 구매 전에 핏을 확인할 수 있도록 해,
+            불확실성을 줄이고 만족도를 높이는 새로운 표준을 만들고자 합니다.
+          </p>
+
+          <div style="margin-top:14px;">
+            <span class="pill">구매 확신 강화</span>
+            <span class="pill">반품/교환 비용 절감</span>
+            <span class="pill">상품 상세 UX 개선</span>
+            <span class="pill">모바일 우선</span>
+          </div>
+
+          <h3 style="margin-top:16px;">우리가 해결하는 문제</h3>
+          <ul class="list">
+            <li><b>고객</b>: 사이즈/핏 불확실성으로 인한 구매 망설임</li>
+            <li><b>브랜드</b>: 반품·교환 증가로 인한 비용 및 운영 피로</li>
+            <li><b>플랫폼</b>: 이탈률 증가, 전환 퍼널 병목, 체류시간 한계</li>
+          </ul>
+
+          <h3 style="margin-top:16px;">로드맵</h3>
+          <ul class="list">
+            <li><b>Phase 1</b>: 상세 페이지 “입어보기” 핵심 UX 확립</li>
+            <li><b>Phase 2</b>: 사이즈 가이드/리뷰 기반 추천 강화</li>
+            <li><b>Phase 3</b>: 카테고리 확장 및 운영 자동화(상품 데이터 연동 고도화)</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>핵심 원칙</h3>
+          <ul class="list">
+            <li><b>마찰 최소화</b>: 설치·회원가입 없이도 경험 가능</li>
+            <li><b>자연스러운 삽입</b>: 구매 흐름을 깨지 않는 UI</li>
+            <li><b>운영 친화</b>: 실험/개선이 쉬운 구조</li>
+            <li><b>확장성</b>: 다양한 브랜드/플랫폼 UX에 맞춤 적용</li>
+          </ul>
+
+          <h3 style="margin-top:16px;">연락</h3>
+          <p style="margin-top:6px;">
+            발표/데모 환경에서는 아래 정보를 “가상의 연락처”로 사용해도 됩니다.
+            (원하면 실제 이메일/오픈채팅 링크로 바꿔드릴게요.)
+          </p>
+          <ul class="list">
+            <li>이메일: contact@ootmakase.example</li>
+            <li>문의: “회사 소개” 섹션 하단 링크(추후 연결 예정)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    © <span id="year"></span> 옷마카세. All rights reserved.
+  </footer>
 
   <script>
-    // year
+    // 연도 자동 표기 (정적 사이트에서도 동작)
     document.getElementById("year").textContent = new Date().getFullYear();
-
-    // smooth scroll
-    document.querySelectorAll('a[href^="#"]').forEach(a=>{
-      a.addEventListener("click", (e)=>{
-        const href = a.getAttribute("href");
-        if(!href || href === "#") return;
-        const el = document.querySelector(href);
-        if(el){
-          e.preventDefault();
-          el.scrollIntoView({behavior:"smooth", block:"start"});
-          // close mobile menu if open
-          const panel = document.getElementById("mobilePanel");
-          if(panel && panel.classList.contains("open")) panel.classList.remove("open");
-        }
-      });
-    });
-
-    // mobile menu toggle
-    const menuBtn = document.getElementById("menuBtn");
-    const panel = document.getElementById("mobilePanel");
-    if(menuBtn && panel){
-      menuBtn.addEventListener("click", ()=> panel.classList.toggle("open"));
-    }
   </script>
 </body>
 </html>
