@@ -5,16 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>옷마카세 | 아바타 생성/조절 데모</title>
 
-  <!-- ✅ 핵심: "three" / "three/addons/" 를 CDN으로 매핑 -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
-
   <style>
     html, body { margin: 0; height: 100%; overflow: hidden; background:#070a12; }
     #wrap { position: fixed; inset: 0; display: grid; grid-template-columns: minmax(300px, 360px) 1fr; }
@@ -27,23 +17,22 @@
     #panel h2 { margin: 0 0 10px; font-size: 14px; }
     #panel .hint { margin: 0 0 12px; font-size: 12px; color: rgba(230,233,242,0.75); line-height: 1.45; }
 
-    .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .field { display:grid; gap: 6px; }
+    .field { display:grid; gap: 6px; margin-bottom: 10px; }
     label { font-size: 12px; color: rgba(230,233,242,0.85); }
 
-    input[type="text"], input[type="number"]{
+    input[type="text"]{
       width: 100%; box-sizing: border-box;
       padding: 10px; border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(255,255,255,0.06);
       color:#e6e9f2; outline:none;
     }
-    input:focus { border-color: rgba(255,255,255,0.25); }
+    input[type="text"]:focus { border-color: rgba(255,255,255,0.25); }
 
     input[type="range"]{ width:100%; accent-color: #ffb020; }
     .kv { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size: 12px; color: rgba(230,233,242,0.72); }
 
-    .actions { display:flex; gap:10px; margin-top: 12px; }
+    .actions { display:flex; gap:10px; margin-top: 10px; }
     button{
       flex:1; padding:10px 12px; border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.14);
@@ -126,7 +115,7 @@
     </div>
 
     <div class="field">
-      <label>몸통 길이(Spine/Chest)</label>
+      <label>몸통 길이(Spine 계열)</label>
       <input id="S_torso" type="range" min="0.85" max="1.20" step="0.01" value="1.00" />
       <div class="kv"><span>값</span><span id="S_torso_v">1.00</span></div>
     </div>
@@ -169,9 +158,10 @@
 </div>
 
 <script type="module">
-  import * as THREE from "three";
-  import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-  import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+  // ✅ importmap 없이 "URL 직접 import" (GitHub Pages에서 가장 안정적)
+  import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+  import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+  import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
 
   const $ = (id)=> document.getElementById(id);
   const statusEl = $("status");
@@ -228,10 +218,13 @@
   function findBoneByAliases(aliases){
     if (!skeleton) return null;
     const aliasSet = aliases.map(normalizeName);
+
+    // 1) exact match
     for (const b of skeleton.bones){
       const n = normalizeName(b.name);
       if (aliasSet.includes(n)) return b;
     }
+    // 2) contains match
     for (const b of skeleton.bones){
       const n = normalizeName(b.name);
       for (const a of aliasSet) if (n.includes(a)) return b;
@@ -273,27 +266,28 @@
     bone.position.set(orig.x * factor, orig.y, orig.z);
   }
 
+  // ✅ 너 GLB(avatar.glb) 본 네이밍(hip, spine_01, upperarm_l, upperleg_l …) 대응
   function mapBones(){
     bones = {};
-    bones.hips   = findBoneByAliases(["hips","pelvis","mixamorighips"]);
-    bones.spine  = findBoneByAliases(["spine","mixamorigspine"]);
-    bones.chest  = findBoneByAliases(["spine2","chest","upperchest","mixamorigspine2","mixamorigchest"]);
+    bones.hips   = findBoneByAliases(["hips","hip","pelvis","root","mixamorighips"]);
+    bones.spine  = findBoneByAliases(["spine","spine01","spine1","spine_01","mixamorigspine"]);
+    bones.chest  = findBoneByAliases(["chest","spine03","spine3","spine_03","spine02","spine2","spine_02","upperchest","mixamorigspine2","mixamorigchest"]);
 
-    bones.lUpperArm = findBoneByAliases(["leftupperarm","mixamorigleftupperarm","mixamorigleftarm"]);
-    bones.lLowerArm = findBoneByAliases(["leftlowerarm","mixamorigleftlowerarm","mixamorigleftforearm"]);
-    bones.lHand     = findBoneByAliases(["lefthand","mixamoriglefthand"]);
+    bones.lUpperArm = findBoneByAliases(["leftupperarm","upperarml","upperarm_l","mixamorigleftupperarm","mixamorigleftarm"]);
+    bones.lLowerArm = findBoneByAliases(["leftlowerarm","lowerarml","lowerarm_l","mixamorigleftlowerarm","mixamorigleftforearm"]);
+    bones.lHand     = findBoneByAliases(["lefthand","handl","hand_l","mixamoriglefthand"]);
 
-    bones.rUpperArm = findBoneByAliases(["rightupperarm","mixamorigrightupperarm","mixamorigrightarm"]);
-    bones.rLowerArm = findBoneByAliases(["rightlowerarm","mixamorigrightlowerarm","mixamorigrightforearm"]);
-    bones.rHand     = findBoneByAliases(["righthand","mixamorigrighthand"]);
+    bones.rUpperArm = findBoneByAliases(["rightupperarm","upperarmr","upperarm_r","mixamorigrightupperarm","mixamorigrightarm"]);
+    bones.rLowerArm = findBoneByAliases(["rightlowerarm","lowerarmr","lowerarm_r","mixamorigrightlowerarm","mixamorigrightforearm"]);
+    bones.rHand     = findBoneByAliases(["righthand","handr","hand_r","mixamorigrighthand"]);
 
-    bones.lUpperLeg = findBoneByAliases(["leftupperleg","mixamorigleftupleg"]);
-    bones.lLowerLeg = findBoneByAliases(["leftlowerleg","mixamorigleftleg"]);
-    bones.lFoot     = findBoneByAliases(["leftfoot","mixamorigleftfoot"]);
+    bones.lUpperLeg = findBoneByAliases(["leftupperleg","upperlegl","upperleg_l","mixamorigleftupleg"]);
+    bones.lLowerLeg = findBoneByAliases(["leftlowerleg","lowerlegl","lowerleg_l","mixamorigleftleg"]);
+    bones.lFoot     = findBoneByAliases(["leftfoot","footl","foot_l","mixamorigleftfoot"]);
 
-    bones.rUpperLeg = findBoneByAliases(["rightupperleg","mixamorigrightupleg"]);
-    bones.rLowerLeg = findBoneByAliases(["rightlowerleg","mixamorigrightleg"]);
-    bones.rFoot     = findBoneByAliases(["rightfoot","mixamorigrightfoot"]);
+    bones.rUpperLeg = findBoneByAliases(["rightupperleg","upperlegr","upperleg_r","mixamorigrightupleg"]);
+    bones.rLowerLeg = findBoneByAliases(["rightlowerleg","lowerlegr","lowerleg_r","mixamorigrightleg"]);
+    bones.rFoot     = findBoneByAliases(["rightfoot","footr","foot_r","mixamorigrightfoot"]);
   }
 
   function applyAdjust(){
@@ -310,19 +304,23 @@
 
     modelGroup.scale.set(sAll, sAll, sAll);
 
+    // torso
     if (bones.spine && bones.chest) scaleChildOffset(bones.spine, bones.chest, sTorso);
     else if (bones.hips && bones.spine) scaleChildOffset(bones.hips, bones.spine, sTorso);
 
+    // legs
     if (bones.lUpperLeg && bones.lLowerLeg) scaleChildOffset(bones.lUpperLeg, bones.lLowerLeg, sLeg);
     if (bones.lLowerLeg && bones.lFoot)     scaleChildOffset(bones.lLowerLeg, bones.lFoot, sLeg);
     if (bones.rUpperLeg && bones.rLowerLeg) scaleChildOffset(bones.rUpperLeg, bones.rLowerLeg, sLeg);
     if (bones.rLowerLeg && bones.rFoot)     scaleChildOffset(bones.rLowerLeg, bones.rFoot, sLeg);
 
+    // arms
     if (bones.lUpperArm && bones.lLowerArm) scaleChildOffset(bones.lUpperArm, bones.lLowerArm, sArm);
     if (bones.lLowerArm && bones.lHand)     scaleChildOffset(bones.lLowerArm, bones.lHand, sArm);
     if (bones.rUpperArm && bones.rLowerArm) scaleChildOffset(bones.rUpperArm, bones.rLowerArm, sArm);
     if (bones.rLowerArm && bones.rHand)     scaleChildOffset(bones.rLowerArm, bones.rHand, sArm);
 
+    // widths (bone x offset)
     if (bones.lUpperArm) scaleBoneXOffset(bones.lUpperArm, sShoulderW);
     if (bones.rUpperArm) scaleBoneXOffset(bones.rUpperArm, sShoulderW);
     if (bones.lUpperLeg) scaleBoneXOffset(bones.lUpperLeg, sHipW);
@@ -380,7 +378,7 @@
         setStatus(
           `<b>상태:</b> 모델 로드 완료<br/>
            <b>경고:</b> SkinnedMesh(스켈레톤)를 찾지 못했습니다.<br/>
-           이 페이지의 “길이 조절”은 스켈레톤 포함 GLB에서만 동작합니다.`
+           길이 조절은 스켈레톤 포함 GLB에서만 동작합니다.`
         );
         return;
       }
@@ -477,6 +475,5 @@
   setStatus(`<b>상태:</b> 준비 완료<br/><b>기본 경로:</b> <code>${DEFAULT_MODEL_URL}</code>`);
   loadFromUrl(DEFAULT_MODEL_URL);
 </script>
-
 </body>
 </html>
